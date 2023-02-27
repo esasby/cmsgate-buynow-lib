@@ -6,48 +6,44 @@ namespace esas\cmsgate\view\admin;
 
 use esas\cmsgate\BridgeConnectorBuyNow;
 use esas\cmsgate\buynow\BuyNowProduct;
-use esas\cmsgate\controllers\admin\AdminControllerBuyNowProducts;
-use esas\cmsgate\Registry;
+use esas\cmsgate\lang\Translator;
 use esas\cmsgate\utils\htmlbuilder\Attributes as attribute;
 use esas\cmsgate\utils\htmlbuilder\Elements as element;
-use esas\cmsgate\utils\SessionUtils;
+use esas\cmsgate\utils\htmlbuilder\hro\cards\CardButtonsRowHRO;
+use esas\cmsgate\utils\htmlbuilder\presets\BootstrapPreset as bootstrap;
+use esas\cmsgate\utils\htmlbuilder\presets\TablePreset;
 use esas\cmsgate\utils\SessionUtilsBridge;
+use esas\cmsgate\view\hro\CardBuyNowHRO;
+use esas\cmsgate\view\hro\TableBuyNowHRO;
+use esas\cmsgate\view\RedirectServiceBuyNow;
 
 class AdminBuyNowProductListPage extends AdminBuyNowPage
 {
+    private $productList;
+
+    public function __construct() {
+        parent::__construct();
+        $this->productList = BridgeConnectorBuyNow::fromRegistry()->getBuyNowProductRepository()->getByMerchantId(SessionUtilsBridge::getMerchantUUID());;
+    }
+
+
     public function elementPageContent() {
-        return element::table(
-            $this->elementProductTableHead(),
-            $this->elementProductTableBody()
-        );
-    }
-
-    public function elementProductTableHead() {
-        return element::thead(
-            element::tr(
-                $this->elementProductTableHeadCol('#'),
-                $this->elementProductTableHeadCol('SKU'),
-                $this->elementProductTableHeadCol('Name'),
-                $this->elementProductTableHeadCol('Description'),
-                $this->elementProductTableHeadCol('Active'),
-                $this->elementProductTableHeadCol('Price'),
-                $this->elementProductTableHeadCol('Currency'),
-                $this->elementProductTableHeadCol('Created At'),
+        return CardBuyNowHRO::builder()
+            ->setCardHeaderI18n(AdminViewFieldsBuyNow::LABEL_PRODUCT_LIST)
+            ->setCardBody(TableBuyNowHRO::builder()
+                ->setTableHeaderColumns(['Id', 'SKU', 'Name', 'Description', 'Active', 'Price', 'Currency', 'Created At'])
+                ->setTableBody($this->elementProductTableBody())
+                ->build())
+            ->setCardFooter(CardButtonsRowHRO::builder()
+                ->addButtonI18n(AdminViewFields::ADD, RedirectServiceBuyNow::productAdd(), 'btn-secondary')
+                ->build()
             )
-        );
-    }
-
-    public function elementProductTableHeadCol($label) {
-        return element::th(
-            attribute::scope("col"),
-            element::content($label)
-        );
+            ->build();
     }
 
     public function elementProductTableBody() {
-        $productList = BridgeConnectorBuyNow::fromRegistry()->getBuyNowProductRepository()->getByMerchantId(SessionUtilsBridge::getMerchantUUID());
         $rows = '';
-        foreach ($productList as $key => $value) {
+        foreach ($this->productList as $key => $value) {
             $rows .= $this->elementProductTableRow($value, $key);
         }
         return element::tbody($rows);
@@ -58,14 +54,12 @@ class AdminBuyNowProductListPage extends AdminBuyNowPage
      */
     public function elementProductTableRow($product, $rowId) {
         return element::tr(
-            element::th(
-                attribute::scope("row"),
-                element::content($rowId)
-            ),
+            attribute::clazz("position-relative"),
+            element::td(TablePreset::elementTdStretchedLink($product->getId(), RedirectServiceBuyNow::productEdit($product->getId()))),
             element::td($product->getSku()),
             element::td($product->getName()),
             element::td($product->getDescription()),
-            element::td($product->isActive()),
+            element::td(TablePreset::elementTdSwitch($product->isActive())),
             element::td($product->getPrice()),
             element::td($product->getCurrency()),
             element::td($product->getCreatedAt())
@@ -73,6 +67,6 @@ class AdminBuyNowProductListPage extends AdminBuyNowPage
     }
 
     public function getNavItemId() {
-        return AdminControllerBuyNowProducts::PATH_ADMIN_PRODUCTS;
+        return RedirectServiceBuyNow::PATH_ADMIN_PRODUCTS;
     }
 }

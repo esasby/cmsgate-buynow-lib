@@ -10,6 +10,10 @@ class BuyNowBasketItem
 {
     private $id;
     private $basketId;
+    /**
+     * @var BuyNowBasket
+     */
+    private $basket;
     private $productId;
     /**
      * @var BuyNowProduct
@@ -17,6 +21,7 @@ class BuyNowBasketItem
     private $product;
     private $count;
     private $maxCount;
+    private $createdAt;
 
     /**
      * @return mixed
@@ -49,6 +54,24 @@ class BuyNowBasketItem
         $this->basketId = $basketId;
         return $this;
     }
+
+    /**
+     * @return BuyNowBasket
+     */
+    public function getBasket() {
+        return $this->basket;
+    }
+
+    /**
+     * @param BuyNowBasket $basket
+     * @return BuyNowBasketItem
+     */
+    public function setBasket($basket) {
+        $this->basket = $basket;
+        return $this;
+    }
+
+
 
     /**
      * @return mixed
@@ -114,5 +137,20 @@ class BuyNowBasketItem
         return $this;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getCreatedAt() {
+        return $this->createdAt;
+    }
+
+    /**
+     * @param mixed $createdAt
+     * @return BuyNowBasketItem
+     */
+    public function setCreatedAt($createdAt) {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
 
 }

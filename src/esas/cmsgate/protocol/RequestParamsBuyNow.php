@@ -6,9 +6,16 @@ class RequestParamsBuyNow
 {
     const ORDER_ID = 'orderId';
     const BASKET_ID = 'basketId';
+    const BASKET_SHOP_CONFIG_ID = 'basketShopConfigId';
     const BASKET_NAME = 'basketName';
     const BASKET_DESCRIPTION = 'basketDescription';
     const BASKET_ACTIVE = 'basketActive';
+    const BASKET_ASK_NAME = 'basketAskName';
+    const BASKET_ASK_EMAIL = 'basketAskEmail';
+    const BASKET_ASK_PHONE = 'basketAskPhone';
+    const BASKET_ITEM_ID = 'basketItemId';
+    const BASKET_ITEM_PRODUCT_COUNT = 'basketItemProductsCount';
+    const BASKET_ITEM_PRODUCT_MAX_COUNT = 'basketItemProductsMaxCount';
     const CUSTOMER_FIO = 'customerFio';
     const CUSTOMER_PHONE = 'customerPhone';
     const CUSTOMER_EMAIL = 'customerEmail';
@@ -20,6 +27,9 @@ class RequestParamsBuyNow
     const PRODUCT_ACTIVE = 'productActive';
     const PRODUCT_PRICE = 'productPrice';
     const PRODUCT_CURRENCY = 'productCurrency';
+    const SHOP_CONFIG_ID = 'shopConfigId';
+    const SHOP_CONFIG_NAME = 'shopConfigName';
+    const SHOP_CONFIG_ACTIVE = 'shopConfigActive';
 
     public static function getProductId() {
         return $_REQUEST[self::PRODUCT_ID];
@@ -54,6 +64,42 @@ class RequestParamsBuyNow
         return $_REQUEST[self::BASKET_ID];
     }
 
+    public static function getBasketShopConfigId() {
+        return $_REQUEST[self::BASKET_SHOP_CONFIG_ID];
+    }
+
+    public static function getBasketName() {
+        return $_REQUEST[self::BASKET_NAME];
+    }
+
+    public static function getBasketDescription() {
+        return $_REQUEST[self::BASKET_DESCRIPTION];
+    }
+
+    public static function getBasketActive() {
+        return $_REQUEST[self::BASKET_ACTIVE];
+    }
+
+    public static function getBasketAskName() {
+        return $_REQUEST[self::BASKET_ASK_NAME];
+    }
+
+    public static function getBasketAskEmail() {
+        return $_REQUEST[self::BASKET_ASK_EMAIL];
+    }
+
+    public static function getBasketAskPhone() {
+        return $_REQUEST[self::BASKET_ASK_PHONE];
+    }
+
+    public static function getBasketItemProductCount() {
+        return $_REQUEST[self::BASKET_ITEM_PRODUCT_COUNT];
+    }
+
+    public static function getBasketItemProductMaxCount() {
+        return $_REQUEST[self::BASKET_ITEM_PRODUCT_MAX_COUNT];
+    }
+
     public static function getOrderId() {
         return $_REQUEST[self::ORDER_ID];
     }
@@ -72,5 +118,17 @@ class RequestParamsBuyNow
 
     public static function getBasketItems() {
         return $_REQUEST[self::BASKET_ITEMS];
+    }
+
+    public static function getShopConfigId() {
+        return $_REQUEST[self::SHOP_CONFIG_ID];
+    }
+
+    public static function getShopConfigName() {
+        return $_REQUEST[self::SHOP_CONFIG_NAME];
+    }
+
+    public static function getShopConfigActive() {
+        return $_REQUEST[self::SHOP_CONFIG_ACTIVE];
     }
 }

@@ -14,7 +14,7 @@ class AdminControllerBuyNowCabinet extends Controller
 {
     public function process()
     {
-        (new ControllerBridgeCheckAuth())->process(true);
+        BridgeConnector::fromRegistry()->getMerchantService()->checkAuth(true);
         try {
             if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 Registry::getRegistry()->getConfigForm()->validate();

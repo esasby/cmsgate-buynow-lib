@@ -4,12 +4,17 @@
 namespace esas\cmsgate\buynow;
 
 
+use esas\cmsgate\bridge\ShopConfigBuyNow;
 use esas\cmsgate\BridgeConnector;
 
 class BuyNowBasket
 {
     private $id;
     private $shopConfigId;
+    /**
+     * @var ShopConfigBuyNow
+     */
+    private $shopConfig;
     private $name;
     private $description;
     /**
@@ -30,11 +35,6 @@ class BuyNowBasket
     private $askFIO = false;
     private $createdAt;
     private $checkoutCount;
-
-    /**
-     * @var BuyNowBasketItem[]
-     */
-    private $items;
     /**
      * @return mixed
      */
@@ -66,6 +66,24 @@ class BuyNowBasket
         $this->shopConfigId = $shopConfigId;
         return $this;
     }
+
+    /**
+     * @return ShopConfigBuyNow
+     */
+    public function getShopConfig() {
+        return $this->shopConfig;
+    }
+
+    /**
+     * @param ShopConfigBuyNow $shopConfig
+     * @return BuyNowBasket
+     */
+    public function setShopConfig($shopConfig) {
+        $this->shopConfig = $shopConfig;
+        return $this;
+    }
+
+
 
     /**
      * @return mixed
@@ -192,31 +210,6 @@ class BuyNowBasket
      */
     public function setCheckoutCount($checkoutCount) {
         $this->checkoutCount = $checkoutCount;
-        return $this;
-    }
-
-    /**
-     * @return BuyNowBasketItem[]
-     */
-    public function getItems() {
-        return $this->items;
-    }
-
-    /**
-     * @param BuyNowBasketItem[] $items
-     * @return BuyNowBasket
-     */
-    public function setItems($items) {
-        $this->items = $items;
-        return $this;
-    }
-
-    /**
-     * @param BuyNowBasketItem $item
-     * @return BuyNowBasket
-     */
-    public function addItem($item) {
-        $this->items[] = $item;
         return $this;
     }
 }

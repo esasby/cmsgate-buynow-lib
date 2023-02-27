@@ -18,7 +18,8 @@ class OrderCacheBuyNowService extends OrderCacheService
         $orderDataBuyNow->setCustomerEmail(RequestParamsBuyNow::getCustomerEmail());
         $orderDataBuyNow->setCustomerPhone(RequestParamsBuyNow::getCustomerPhone());
         $amount = 0;
-        foreach ($basket->getItems() as $basketItem) {
+        $basketItems = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketItemRepository()->getByBasketId(RequestParamsBuyNow::getBasketId());
+        foreach ($basketItems as $basketItem) {
             $product = $basketItem->getProduct();
             $orderItem = new OrderDataItemBuyNow();
             $orderItem->setPrice($product->getPrice());

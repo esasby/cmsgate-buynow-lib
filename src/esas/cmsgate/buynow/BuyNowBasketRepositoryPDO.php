@@ -15,7 +15,7 @@ class BuyNowBasketRepositoryPDO extends BuyNowBasketRepository
      * @var PDO
      */
     protected $pdo;
-    protected $basketTable;
+    protected $tableName;
 
     const COLUMN_ID = 'id';
     const COLUMN_SHOP_CONFIG_ID = 'shop_config_id';
@@ -33,15 +33,15 @@ class BuyNowBasketRepositoryPDO extends BuyNowBasketRepository
         parent::__construct();
         $this->pdo = $pdo;
         if ($basketTable != null)
-            $this->basketTable = $basketTable;
+            $this->tableName = $basketTable;
         else
-            $this->basketTable = Registry::getRegistry()->getModuleDescriptor()->getCmsAndPaysystemName()
+            $this->tableName = Registry::getRegistry()->getModuleDescriptor()->getCmsAndPaysystemName()
                 . '_basket';
     }
 
     public function saveOrUpdate($basket) {
         if (!empty($basket->getId())) {
-            $sql = "select * from $this->basketTable where id = :id";
+            $sql = "select * from $this->tableName where id = :id";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
                 'id' => $basket->getId(),
@@ -49,39 +49,40 @@ class BuyNowBasketRepositoryPDO extends BuyNowBasketRepository
             while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
                 $uuid = $row[self::COLUMN_ID];
                 $this->logger->info("Updating basket with id[" . $uuid . "]");
-                $sql = "UPDATE $this->basketTable set active = :active, name = :name, description = :description, ask_phone = :ask_phone, ask_email = :ask_email, ask_fio = :ask_fio where id = :id";
+                $sql = "UPDATE $this->tableName set shop_config_id = :shop_config_id, active = :active, name = :name, description = :description, ask_phone = :ask_phone, ask_email = :ask_email, ask_fio = :ask_fio where id = :id";
                 $stmt = $this->pdo->prepare($sql);
                 $stmt->execute([
                     'id' => $basket->getId(),
-                    self::COLUMN_ACTIVE => $basket->isActive(),
+                    self::COLUMN_ACTIVE => $basket->isActive() ? 1 : 0,
                     self::COLUMN_NAME => $basket->getName(),
+                    self::COLUMN_SHOP_CONFIG_ID => $basket->getShopConfigId(),
                     self::COLUMN_DESCRIPTION => $basket->getDescription(),
-                    self::COLUMN_ASK_PHONE => $basket->isAskPhone(),
-                    self::COLUMN_ASK_EMAIL => $basket->isAskEmail(),
-                    self::COLUMN_ASK_FIO => $basket->isAskFIO(),
+                    self::COLUMN_ASK_PHONE => $basket->isAskPhone() ? 1 : 0,
+                    self::COLUMN_ASK_EMAIL => $basket->isAskEmail() ? 1 : 0,
+                    self::COLUMN_ASK_FIO => $basket->isAskFIO() ? 1 : 0,
                 ]);
                 return $uuid;
             }
         }
         $uuid = StringUtils::guidv4();
-        $sql = "INSERT INTO $this->basketTable (id, shop_config_id, name, description, active, ask_phone, ask_email, ask_fio, checkout_count, created_at) VALUES (:id, :shop_config_id, :name, :description, :active, :ask_phone, :ask_email, :ask_fio, 0, CURRENT_TIMESTAMP)";
+        $sql = "INSERT INTO $this->tableName (id, shop_config_id, name, description, active, ask_phone, ask_email, ask_fio, checkout_count, created_at) VALUES (:id, :shop_config_id, :name, :description, :active, :ask_phone, :ask_email, :ask_fio, 0, CURRENT_TIMESTAMP)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'id' => $uuid,
             self::COLUMN_SHOP_CONFIG_ID => $basket->getShopConfigId(),
-            self::COLUMN_ACTIVE => $basket->isActive(),
+            self::COLUMN_ACTIVE => $basket->isActive() ? 1 : 0,
             self::COLUMN_NAME => $basket->getName(),
             self::COLUMN_DESCRIPTION => $basket->getDescription(),
-            self::COLUMN_ASK_PHONE => $basket->isAskPhone(),
-            self::COLUMN_ASK_EMAIL => $basket->isAskEmail(),
-            self::COLUMN_ASK_FIO => $basket->isAskFIO(),
+            self::COLUMN_ASK_PHONE => $basket->isAskPhone() ? 1 : 0,
+            self::COLUMN_ASK_EMAIL => $basket->isAskEmail() ? 1 : 0,
+            self::COLUMN_ASK_FIO => $basket->isAskFIO() ? 1 : 0,
         ]);
         $this->logger->info("Basket was saved by id[" . $uuid . "]");
         return $uuid;
     }
 
     public function getById($basketId) {
-        $sql = "select * from $this->basketTable where id = :id";
+        $sql = "select * from $this->tableName where id = :id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'id' => $basketId,
@@ -94,7 +95,7 @@ class BuyNowBasketRepositoryPDO extends BuyNowBasketRepository
     }
 
     public function getByShopConfigId($shopConfigId) {
-        $sql = "select * from $this->basketTable where shop_config_id = :shop_config_id";
+        $sql = "select * from $this->tableName where shop_config_id = :shop_config_id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'shop_config_id' => $shopConfigId,
@@ -111,19 +112,45 @@ class BuyNowBasketRepositoryPDO extends BuyNowBasketRepository
         $basket
             ->setId($row[self::COLUMN_ID])
             ->setShopConfigId($row[self::COLUMN_SHOP_CONFIG_ID])
+            ->setShopConfig(BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->getByUUID($row[self::COLUMN_SHOP_CONFIG_ID]))
             ->setName($row[self::COLUMN_NAME])
+            ->setDescription($row[self::COLUMN_DESCRIPTION])
             ->setCreatedAt($row[self::COLUMN_CREATED_AT])
-            ->setActive($row[self::COLUMN_ACTIVE]) //todo convert to boolean
-            ->setCheckoutCount($row[self::COLUMN_CHECKOUT_COUNT])
-            ->setItems(BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketItemRepository()->getByBasketId($row[self::COLUMN_ID]));
+            ->setActive($row[self::COLUMN_ACTIVE])
+            ->setAskFIO($row[self::COLUMN_ASK_FIO])
+            ->setAskPhone($row[self::COLUMN_ASK_PHONE])
+            ->setAskEmail($row[self::COLUMN_ASK_EMAIL])
+            ->setCheckoutCount($row[self::COLUMN_CHECKOUT_COUNT]);
         return $basket;
     }
 
     public function incrementCheckoutCount($basketId) {
-        $sql = "UPDATE $this->basketTable set checkout_count = checkout_count + 1 where id = :id";
+        $sql = "UPDATE $this->tableName set checkout_count = checkout_count + 1 where id = :id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'id' => $basketId
+        ]);
+    }
+
+    public function getByMerchantId($merchantId) {
+        $shopConfigsTable = BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->getTableName();
+        $sql = "select b.* from $this->tableName b, $shopConfigsTable sc  where b.shop_config_id = sc.id and sc.merchant_id = :merchant_id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            'merchant_id' => $merchantId,
+        ]);
+        $products = array();
+        while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
+            $products[] =  $this->createBasketObject($row);
+        }
+        return $products;
+    }
+
+    public function deleteById($productId) {
+        $sql = "delete from $this->tableName where id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            'id' => $productId,
         ]);
     }
 }

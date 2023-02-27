@@ -11,10 +11,8 @@ namespace esas\cmsgate;
 use esas\cmsgate\descriptors\CmsConnectorDescriptor;
 use esas\cmsgate\descriptors\VendorDescriptor;
 use esas\cmsgate\descriptors\VersionDescriptor;
-use esas\cmsgate\lang\LocaleLoaderTilda;
-use esas\cmsgate\tilda\RequestParamsTilda;
+use esas\cmsgate\lang\LocaleLoaderBuyNow;
 use esas\cmsgate\wrappers\OrderWrapperBuyNow;
-use esas\cmsgate\wrappers\OrderWrapperTilda;
 
 class CmsConnectorByNow extends CmsConnectorBridge
 {
@@ -37,8 +35,8 @@ class CmsConnectorByNow extends CmsConnectorBridge
         return new CmsConnectorDescriptor(
             "cmsgate-buynow-lib",
             new VersionDescriptor(
-                "v1.18.0",
-                "2023-02-15"
+                "v1.18.1",
+                "2023-02-27"
             ),
             "Cmsgate BuyNow connector",
             "https://github.com/esasby/cmsgate-buynow-lib",
@@ -49,7 +47,7 @@ class CmsConnectorByNow extends CmsConnectorBridge
 
     public function createLocaleLoaderCached($cache)
     {
-        return new LocaleLoaderTilda($cache);
+        return new LocaleLoaderBuyNow($cache);
     }
 
     public function getReturnToShopSuccessURL()

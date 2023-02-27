@@ -5,12 +5,29 @@ namespace esas\cmsgate\bridge;
 
 class ShopConfigBuyNow extends ShopConfig
 {
+    private $name;
     private $merchantId;
     private $orderCounter;
     /**
      * @var boolean
      */
     private $active;
+
+    /**
+     * @return mixed
+     */
+    public function getName() {
+        return $this->name;
+    }
+
+    /**
+     * @param mixed $name
+     * @return ShopConfigBuyNow
+     */
+    public function setName($name) {
+        $this->name = $name;
+        return $this;
+    }
 
     /**
      * @return mixed

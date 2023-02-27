@@ -22,6 +22,12 @@ abstract class BuyNowMerchantRepository
 
     }
 
+    /**
+     * @param $id string
+     * @return BuyNowMerchant
+     */
+    public abstract function getById($merchantId);
+
     public abstract function addOrUpdateAuth($login, $password, $hash);
 
     public abstract function getAuthHashById($id);

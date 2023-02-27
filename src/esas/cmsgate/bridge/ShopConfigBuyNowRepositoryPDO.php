@@ -26,6 +26,7 @@ class ShopConfigBuyNowRepositoryPDO extends ShopConfigBuyNowRepository
     protected $logger;
 
     const COLUMN_ID = 'id';
+    const COLUMN_NAME = 'name';
     const COLUMN_MERCHANT_ID = 'merchant_id';
     const COLUMN_ACTIVE = 'active';
     const COLUMN_ORDER_COUNTER = 'order_counter';
@@ -53,6 +54,7 @@ class ShopConfigBuyNowRepositoryPDO extends ShopConfigBuyNowRepository
             $shopConfig->setConfigArray(array()); // new config
         }
         $shopConfig->setUuid($row[self::COLUMN_ID]);
+        $shopConfig->setName($row[self::COLUMN_NAME]);
         $shopConfig->setMerchantId($row[self::COLUMN_MERCHANT_ID]);
         $shopConfig->setActive($row[self::COLUMN_ACTIVE]);
         $shopConfig->setOrderCounter($row[self::COLUMN_ORDER_COUNTER]);
@@ -75,22 +77,24 @@ class ShopConfigBuyNowRepositoryPDO extends ShopConfigBuyNowRepository
             while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
                 $uuid = $row[self::COLUMN_ID];
                 $this->logger->info("Updating shop config for id[" . $uuid . "]");
-                $sql = "UPDATE $this->tableName set active = :active, config_data = :config_data where id = :id";
+                $sql = "UPDATE $this->tableName set name = :name, active = :active, config_data = :config_data where id = :id";
                 $stmt = $this->pdo->prepare($sql);
                 $stmt->execute([
                     'id' => $shopConfig->getUuid(),
-                    self::COLUMN_ACTIVE => $shopConfig->isActive(),
+                    self::COLUMN_NAME => $shopConfig->getName(),
+                    self::COLUMN_ACTIVE => $shopConfig->isActive() ? 1 : 0,
                     self::COLUMN_CONFIG_DATA => BridgeConnector::fromRegistry()->getCryptService()->encrypt($configData)
                 ]);
                 return $uuid;
             }
         }
         $uuid = StringUtils::guidv4();
-        $sql = "INSERT INTO $this->tableName (id, merchant_id, active, config_data, created_at) VALUES (:id, :merchant_id, :active, :config_data, CURRENT_TIMESTAMP)";
+        $sql = "INSERT INTO $this->tableName (id, name, merchant_id, active, config_data, created_at) VALUES (:id, :name, :merchant_id, :active, :config_data, CURRENT_TIMESTAMP)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
-            'id' => $shopConfig->getUuid(),
-            self::COLUMN_ACTIVE => $shopConfig->isActive(),
+            'id' => $uuid,
+            self::COLUMN_NAME => $shopConfig->getName(),
+            self::COLUMN_ACTIVE => $shopConfig->isActive() ? 1 : 0,
             self::COLUMN_MERCHANT_ID => $shopConfig->getMerchantId(),
             self::COLUMN_CONFIG_DATA => BridgeConnector::fromRegistry()->getCryptService()->encrypt($configData)
         ]);
@@ -134,5 +138,30 @@ class ShopConfigBuyNowRepositoryPDO extends ShopConfigBuyNowRepository
             'id' => $configCacheUUID,
             self::COLUMN_CONFIG_DATA => BridgeConnector::fromRegistry()->getCryptService()->encrypt($configData)
         ]);
+    }
+
+    public function getByMerchantId($merchantId) {
+        $sql = "select * from $this->tableName where merchant_id = :merchant_id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            'merchant_id' => $merchantId,
+        ]);
+        $products = array();
+        while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
+            $products[] =  $this->createShopConfigObject($row);
+        }
+        return $products;
+    }
+
+    public function deleteById($shopConfigId) {
+        $sql = "delete from $this->tableName where id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            'id' => $shopConfigId,
+        ]);
+    }
+
+    public function getTableName() {
+        return $this->tableName;
     }
 }

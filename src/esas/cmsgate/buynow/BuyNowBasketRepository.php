@@ -43,4 +43,17 @@ abstract class BuyNowBasketRepository
     public abstract function getByShopConfigId($shopConfigId);
 
     public abstract function incrementCheckoutCount($basketId);
+
+    /**
+     * @param $id string
+     * @return BuyNowBasket[]
+     */
+    public abstract function getByMerchantId($merchantId);
+
+    /**
+     * @param $basketId string
+     */
+    public abstract function deleteById($basketId);
+
+
 }

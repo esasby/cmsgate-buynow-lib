@@ -22,6 +22,7 @@ class BuyNowBasketItemRepositoryPDO extends BuyNowBasketItemRepository
     const COLUMN_PRODUCT_ID = 'product_id';
     const COLUMN_COUNT = 'count';
     const COLUMN_MAX_COUNT = 'max_count';
+    const COLUMN_CREATED_AT = 'created_at';
 
     public function __construct($pdo, $table = null)
     {
@@ -55,7 +56,7 @@ class BuyNowBasketItemRepositoryPDO extends BuyNowBasketItemRepository
             }
         }
         $uuid = StringUtils::guidv4();
-        $sql = "INSERT INTO $this->table (id, basket_id, product_id, count, max_count) VALUES (:id, :basket_id, :product_id, :count, :max_count)";
+        $sql = "INSERT INTO $this->table (id, basket_id, product_id, count, max_count, created_at) VALUES (:id, :basket_id, :product_id, :count, :max_count, CURRENT_TIMESTAMP)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'id' => $uuid,
@@ -110,15 +111,26 @@ class BuyNowBasketItemRepositoryPDO extends BuyNowBasketItemRepository
         ]);
     }
 
+    public function deleteByBasketId($basketId) {
+        $sql = "delete from $this->table where basket_id = :basket_id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            'basket_id' => $basketId,
+        ]);
+    }
+
     private function createBasketItemObject($row) {
         $basketItem = new BuyNowBasketItem();
         $basketItem
             ->setId($row[self::COLUMN_ID])
             ->setBasketId($row[self::COLUMN_BASKET_ID])
+            ->setBasket(BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->getById($row[self::COLUMN_BASKET_ID]))
             ->setProductId($row[self::COLUMN_PRODUCT_ID])
             ->setProduct(BridgeConnectorBuyNow::fromRegistry()->getBuyNowProductRepository()->getById($row[self::COLUMN_PRODUCT_ID]))
             ->setCount($row[self::COLUMN_COUNT])
-            ->setMaxCount($row[self::COLUMN_MAX_COUNT]);
+            ->setMaxCount($row[self::COLUMN_MAX_COUNT])
+            ->setCreatedAt($row[self::COLUMN_CREATED_AT])
+        ;
         return $basketItem;
     }
 

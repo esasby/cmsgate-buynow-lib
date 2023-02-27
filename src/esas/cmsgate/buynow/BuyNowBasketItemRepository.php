@@ -32,7 +32,7 @@ abstract class BuyNowBasketItemRepository
 
     /**
      * @param $basketItemId string
-     * @return BuyNowBasket
+     * @return BuyNowBasketItem
      */
     public abstract function getById($basketItemId);
 
@@ -45,6 +45,12 @@ abstract class BuyNowBasketItemRepository
      * @param $basketProductId string
      */
     public abstract function deleteByProductId($basketProductId);
+
+    /**
+     * @param $basketId string
+     */
+    public abstract function deleteByBasketId($basketId);
+
 
     /**
      * @param $basketId string

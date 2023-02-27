@@ -75,4 +75,25 @@ class BuyNowMerchantRepositoryPDO extends BuyNowMerchantRepository
         }
         return $authHash;
     }
+
+    public function getById($merchantId) {
+        $sql = "select * from $this->tableName where id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            'id' => $merchantId,
+        ]);
+        $configCache = null;
+        while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
+            $configCache =  $this->createMerchantObject($row);
+        }
+        return $configCache;
+    }
+
+    private function createMerchantObject($row) {
+        $merchant = new BuyNowMerchant();
+        $merchant->setId($row[self::COLUMN_ID]);
+        $merchant->setLogin($row[self::COLUMN_LOGIN]);
+        $merchant->setPassword(BridgeConnector::fromRegistry()->getCryptService()->decrypt($row[self::COLUMN_PASSWORD]));
+        return $merchant;
+    }
 }

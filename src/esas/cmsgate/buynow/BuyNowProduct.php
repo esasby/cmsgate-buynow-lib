@@ -145,7 +145,7 @@ class BuyNowProduct
      * @return BuyNowProduct
      */
     public function setActive($active) {
-        $this->active = $active;
+        $this->active = boolval($active);
         return $this;
     }
 

@@ -55,7 +55,7 @@ class BuyNowProductRepositoryPDO extends BuyNowProductRepository
                 $stmt = $this->pdo->prepare($sql);
                 $stmt->execute([
                     'id' => $product->getId(),
-                    self::COLUMN_ACTIVE => $product->isActive(),
+                    self::COLUMN_ACTIVE => $product->isActive() ? 1 : 0,
                     self::COLUMN_SKU => $product->getSku(),
                     self::COLUMN_NAME => $product->getName(),
                     self::COLUMN_DESCRIPTION => $product->getDescription(),
@@ -71,7 +71,7 @@ class BuyNowProductRepositoryPDO extends BuyNowProductRepository
         $stmt->execute([
             'id' => $uuid,
             self::COLUMN_MERCHANT_ID => $product->getMerchantId(),
-            self::COLUMN_ACTIVE => $product->isActive(),
+            self::COLUMN_ACTIVE => $product->isActive() ? 1 : 0,
             self::COLUMN_SKU => $product->getSku(),
             self::COLUMN_NAME => $product->getName(),
             self::COLUMN_DESCRIPTION => $product->getDescription(),
@@ -96,7 +96,7 @@ class BuyNowProductRepositoryPDO extends BuyNowProductRepository
     }
 
     public function deleteById($productId) {
-        $sql = "delete from $this->table where id = :id";
+        $sql = "delete from $this->tableName where id = :id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'id' => $productId,
