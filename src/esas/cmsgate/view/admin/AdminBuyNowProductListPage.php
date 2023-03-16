@@ -4,41 +4,34 @@
 namespace esas\cmsgate\view\admin;
 
 
-use esas\cmsgate\BridgeConnectorBuyNow;
 use esas\cmsgate\buynow\BuyNowProduct;
-use esas\cmsgate\lang\Translator;
 use esas\cmsgate\utils\htmlbuilder\Attributes as attribute;
 use esas\cmsgate\utils\htmlbuilder\Elements as element;
-use esas\cmsgate\utils\htmlbuilder\hro\cards\CardButtonsRowHRO;
-use esas\cmsgate\utils\htmlbuilder\presets\BootstrapPreset as bootstrap;
+use esas\cmsgate\utils\htmlbuilder\hro\HROFactory;
 use esas\cmsgate\utils\htmlbuilder\presets\TablePreset;
-use esas\cmsgate\utils\SessionUtilsBridge;
-use esas\cmsgate\view\hro\CardBuyNowHRO;
-use esas\cmsgate\view\hro\TableBuyNowHRO;
 use esas\cmsgate\view\RedirectServiceBuyNow;
 
 class AdminBuyNowProductListPage extends AdminBuyNowPage
 {
     private $productList;
 
-    public function __construct() {
-        parent::__construct();
-        $this->productList = BridgeConnectorBuyNow::fromRegistry()->getBuyNowProductRepository()->getByMerchantId(SessionUtilsBridge::getMerchantUUID());;
+    /**
+     * @param array|BuyNowProduct[] $productList
+     * @return AdminBuyNowProductListPage
+     */
+    public function setProductList($productList) {
+        $this->productList = $productList;
+        return $this;
     }
 
-
     public function elementPageContent() {
-        return CardBuyNowHRO::builder()
-            ->setCardHeaderI18n(AdminViewFieldsBuyNow::LABEL_PRODUCT_LIST)
-            ->setCardBody(TableBuyNowHRO::builder()
+        return
+            HROFactory::fromRegistry()->createDataListBuilder()
+                ->setMainLabel(AdminViewFieldsBuyNow::PRODUCT_LIST)
                 ->setTableHeaderColumns(['Id', 'SKU', 'Name', 'Description', 'Active', 'Price', 'Currency', 'Created At'])
                 ->setTableBody($this->elementProductTableBody())
-                ->build())
-            ->setCardFooter(CardButtonsRowHRO::builder()
-                ->addButtonI18n(AdminViewFields::ADD, RedirectServiceBuyNow::productAdd(), 'btn-secondary')
-                ->build()
-            )
-            ->build();
+                ->addFooterButtonAdd(RedirectServiceBuyNow::productAdd())
+                ->build();
     }
 
     public function elementProductTableBody() {
@@ -68,5 +61,9 @@ class AdminBuyNowProductListPage extends AdminBuyNowPage
 
     public function getNavItemId() {
         return RedirectServiceBuyNow::PATH_ADMIN_PRODUCTS;
+    }
+
+    public static function builder() {
+        return new AdminBuyNowProductListPage();
     }
 }

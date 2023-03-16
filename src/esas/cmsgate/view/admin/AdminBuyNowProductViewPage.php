@@ -6,12 +6,9 @@ namespace esas\cmsgate\view\admin;
 
 use esas\cmsgate\buynow\BuyNowProduct;
 use esas\cmsgate\protocol\RequestParamsBuyNow;
-use esas\cmsgate\utils\htmlbuilder\Attributes as attribute;
 use esas\cmsgate\utils\htmlbuilder\Elements as element;
-use esas\cmsgate\utils\htmlbuilder\page\SingleFormPage;
-use esas\cmsgate\utils\htmlbuilder\presets\ScriptsPreset as script;
-use esas\cmsgate\utils\htmlbuilder\presets\CssPreset as css;
-use esas\cmsgate\utils\htmlbuilder\presets\CommonPreset as common;
+use esas\cmsgate\utils\htmlbuilder\hro\HROFactory;
+use esas\cmsgate\utils\htmlbuilder\page\AddOrUpdatePage;
 use esas\cmsgate\view\admin\fields\ConfigFieldCheckbox;
 use esas\cmsgate\view\admin\fields\ConfigFieldNumber;
 use esas\cmsgate\view\admin\fields\ConfigFieldText;
@@ -19,29 +16,55 @@ use esas\cmsgate\view\admin\fields\ConfigFieldTextarea;
 use esas\cmsgate\view\admin\validators\ValidatorNotEmpty;
 use esas\cmsgate\view\admin\validators\ValidatorNumeric;
 use esas\cmsgate\view\RedirectServiceBuyNow;
-use Exception;
 
-class AdminBuyNowProductViewPage extends AdminBuyNowPage implements SingleFormPage
+class AdminBuyNowProductViewPage extends AdminBuyNowPage implements AddOrUpdatePage
 {
+    /**
+     * @var ManagedFields
+     */
+    private $productFields;
+
     /**
      * @var BuyNowProduct
      */
     private $product;
-    /**
-     * @var ConfigFormBridge
-     */
-    private $productEditForm;
 
-    public function __construct($product) {
+    /**
+     * AdminBuyNowProductViewPage constructor.
+     */
+    public function __construct() {
         parent::__construct();
+        $this->productFields = new ManagedFields();
+        $this->productFields
+            ->addField(new ConfigFieldText(RequestParamsBuyNow::PRODUCT_SKU, 'SKU', '', true, new ValidatorNotEmpty(), false))
+            ->addField(new ConfigFieldText(RequestParamsBuyNow::PRODUCT_NAME, 'Name', '', true, new ValidatorNotEmpty(), false))
+            ->addField(new ConfigFieldTextarea(RequestParamsBuyNow::PRODUCT_DESCRIPTION, 'Description', '', true, null, 20, 4))
+            ->addField(new ConfigFieldCheckbox(RequestParamsBuyNow::PRODUCT_ACTIVE, 'Active?', '', true, null))
+            ->addField(new ConfigFieldNumber(RequestParamsBuyNow::PRODUCT_PRICE, 'Price', '', true, new ValidatorNumeric()))
+            ->addField(new ConfigFieldText(RequestParamsBuyNow::PRODUCT_CURRENCY, 'Currency', '', true, new ValidatorNotEmpty(), true));
+    }
+
+    /**
+     * @param BuyNowProduct $product
+     * @return AdminBuyNowProductViewPage
+     */
+    public function setProduct($product) {
         $this->product = $product;
-        $this->productEditForm = $this->createProductEditForm($product);
+        if ($this->product != null) {
+            $this->productFields->getField(RequestParamsBuyNow::PRODUCT_SKU)->setValue($this->product->getSku());
+            $this->productFields->getField(RequestParamsBuyNow::PRODUCT_NAME)->setValue($this->product->getName());
+            $this->productFields->getField(RequestParamsBuyNow::PRODUCT_DESCRIPTION)->setValue($this->product->getDescription());
+            $this->productFields->getField(RequestParamsBuyNow::PRODUCT_ACTIVE)->setValue($this->product->isActive());
+            $this->productFields->getField(RequestParamsBuyNow::PRODUCT_PRICE)->setValue($this->product->getPrice());
+            $this->productFields->getField(RequestParamsBuyNow::PRODUCT_CURRENCY)->setValue('BYN');
+        }
+        return $this;
     }
 
     public function elementPageContent() {
         return $this->elementMessages()
             . element::br()
-            . $this->productEditForm->generate();
+            . $this->elementProductEditForm();
     }
 
     public function getNavItemId() {
@@ -50,39 +73,31 @@ class AdminBuyNowProductViewPage extends AdminBuyNowPage implements SingleFormPa
 
     /**
      * @param $product BuyNowProduct
-     * @return ConfigFormBridge
+     * @return string
      */
-    private function createProductEditForm($product) {
-        $productFields = new ManagedFields();
-        $fieldSku
-            = new ConfigFieldText(RequestParamsBuyNow::PRODUCT_SKU, 'SKU', '', true, new ValidatorNotEmpty(), false);
-        $fieldName
-            = new ConfigFieldText(RequestParamsBuyNow::PRODUCT_NAME, 'Name', '', true, new ValidatorNotEmpty(), false);
-        $fieldDescription
-            = new ConfigFieldTextarea(RequestParamsBuyNow::PRODUCT_DESCRIPTION, 'Description', '', true, null, 20, 4);
-        $fieldActive
-            = new ConfigFieldCheckbox(RequestParamsBuyNow::PRODUCT_ACTIVE, 'Active?', '', true, null);
-        $fieldPrice
-            = new ConfigFieldNumber(RequestParamsBuyNow::PRODUCT_PRICE, 'Price', '', true, new ValidatorNumeric());
-        $fieldCurrency
-            = new ConfigFieldText(RequestParamsBuyNow::PRODUCT_CURRENCY, 'Currency', '', true, new ValidatorNotEmpty(), true);
-        $productFields->addField($fieldSku->setValue($product->getSku()));
-        $productFields->addField($fieldName->setValue($product->getName()));
-        $productFields->addField($fieldDescription->setValue($product->getDescription()));
-        $productFields->addField($fieldActive->setValue($product->isActive()));
-        $productFields->addField($fieldPrice->setValue($product->getPrice()));
-        $productFields->addField($fieldCurrency->setValue('BYN'));
-        $formKey = $product->getId() != null ? AdminViewFieldsBuyNow::LABEL_PRODUCT_EDIT : AdminViewFieldsBuyNow::LABEL_PRODUCT_ADD;
-        $productForm = new ConfigFormBridge($productFields, $formKey, RedirectServiceBuyNow::productList());
-        if ($product->getId() != null) {
-            $productForm->addFooterButtonDelete(RedirectServiceBuyNow::productDelete($product->getId()));
-            $productForm->addHiddenInput(RequestParamsBuyNow::PRODUCT_ID, $product->getId());
+    private function elementProductEditForm() {
+        $formHRO = HROFactory::fromRegistry()->createFormBuilder()
+            ->setId($this->isEditMode() ? AdminViewFieldsBuyNow::PRODUCT_EDIT_FORM : AdminViewFieldsBuyNow::PRODUCT_ADD_FORM)
+            ->setAction(RedirectServiceBuyNow::productList())
+            ->setManagedFields($this->productFields)
+            ->addButtonSave()
+            ->addButtonCancel(RedirectServiceBuyNow::productList());
+        if ($this->isEditMode()) {
+            $formHRO->addButtonDelete(RedirectServiceBuyNow::productDelete($this->product->getId()));
+            $formHRO->addHiddenInput(RequestParamsBuyNow::PRODUCT_ID, $this->product->getId());
         }
-        $productForm->addFooterButtonCancel(RedirectServiceBuyNow::productList());
-        return $productForm;
+        return $formHRO->build();
     }
 
-    public function getForm() {
-        return $this->productEditForm;
+    public function getFormFields() {
+        return $this->productFields;
+    }
+
+    public function isEditMode() {
+        return $this->product != null && $this->product->getId() != null;
+    }
+
+    public static function builder() {
+        return new AdminBuyNowProductViewPage();
     }
 }

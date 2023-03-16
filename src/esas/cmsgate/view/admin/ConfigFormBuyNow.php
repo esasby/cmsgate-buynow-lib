@@ -28,7 +28,7 @@ class ConfigFormBuyNow extends ConfigFormBridge
     }
 
     public function generate() {
-        $formKey = SessionUtilsBridge::getShopConfigUUID() != null ? AdminViewFieldsBuyNow::LABEL_SHOP_CONFIG_EDIT : AdminViewFieldsBuyNow::LABEL_SHOP_CONFIG_ADD;
+        $formKey = SessionUtilsBridge::getShopConfigUUID() != null ? AdminViewFieldsBuyNow::SHOP_CONFIG_EDIT_FORM : AdminViewFieldsBuyNow::SHOP_CONFIG_ADD_FORM;
         $this->setHeadingTitle(Translator::fromRegistry()->translate($formKey));
         if (SessionUtilsBridge::getShopConfigUUID() != null) {
             $this->addFooterButtonDelete(RedirectServiceBuyNow::shopConfigDelete(SessionUtilsBridge::getShopConfigUUID()));

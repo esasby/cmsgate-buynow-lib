@@ -4,60 +4,67 @@
 namespace esas\cmsgate\view\admin;
 
 
-use esas\cmsgate\bridge\ShopConfigBuyNow;
 use esas\cmsgate\BridgeConnectorBuyNow;
-use esas\cmsgate\buynow\BuyNowBasket;
 use esas\cmsgate\buynow\BuyNowBasketItem;
 use esas\cmsgate\buynow\BuyNowProduct;
-use esas\cmsgate\lang\Translator;
 use esas\cmsgate\protocol\RequestParamsBuyNow;
-use esas\cmsgate\utils\htmlbuilder\Attributes as attribute;
 use esas\cmsgate\utils\htmlbuilder\Elements as element;
-use esas\cmsgate\utils\htmlbuilder\page\SingleFormPage;
-use esas\cmsgate\utils\htmlbuilder\presets\BootstrapPreset as bootstrap;
-use esas\cmsgate\utils\htmlbuilder\presets\ScriptsPreset as script;
-use esas\cmsgate\utils\htmlbuilder\presets\CssPreset as css;
-use esas\cmsgate\utils\htmlbuilder\presets\CommonPreset as common;
-use esas\cmsgate\utils\htmlbuilder\presets\TablePreset;
-use esas\cmsgate\utils\SessionUtils;
+use esas\cmsgate\utils\htmlbuilder\hro\HROFactory;
+use esas\cmsgate\utils\htmlbuilder\page\AddOrUpdatePage;
 use esas\cmsgate\utils\SessionUtilsBridge;
-use esas\cmsgate\view\admin\fields\ConfigFieldCheckbox;
 use esas\cmsgate\view\admin\fields\ConfigFieldList;
 use esas\cmsgate\view\admin\fields\ConfigFieldNumber;
-use esas\cmsgate\view\admin\fields\ConfigFieldText;
-use esas\cmsgate\view\admin\fields\ConfigFieldTextarea;
 use esas\cmsgate\view\admin\fields\ListOption;
-use esas\cmsgate\view\admin\validators\ValidatorNotEmpty;
 use esas\cmsgate\view\admin\validators\ValidatorNumeric;
 use esas\cmsgate\view\RedirectServiceBuyNow;
-use Exception;
 
-class AdminBuyNowBasketItemViewPage extends AdminBuyNowPage implements SingleFormPage
+class AdminBuyNowBasketItemViewPage extends AdminBuyNowPage implements AddOrUpdatePage
 {
     /**
      * @var BuyNowBasketItem
      */
     private $basketItem;
+
     /**
-     * @var ConfigFormBridge
+     * @var ManagedFields
      */
-    private $basketItemForm;
+    private $basketItemFields;
 
     /**
      * AdminBuyNowBasketItemViewPage constructor.
-     * @param $basketItem BuyNowBasketItem
      */
-    public function __construct($basketItem) {
+    public function __construct() {
         parent::__construct();
+        $this->basketItemFields = new ManagedFields();
+        $this->basketItemFields
+            ->addField(new ConfigFieldList(RequestParamsBuyNow::PRODUCT_ID, 'Product', '', true, $this->getProductsList()))
+            ->addField(new ConfigFieldNumber(RequestParamsBuyNow::BASKET_ITEM_PRODUCT_COUNT, 'Initial Count', '', true, new ValidatorNumeric()))
+            ->addField(new ConfigFieldNumber(RequestParamsBuyNow::BASKET_ITEM_PRODUCT_MAX_COUNT, 'Max Count', '', true, new ValidatorNumeric()));
+    }
+
+    public static function builder() {
+        return new AdminBuyNowBasketItemViewPage();
+    }
+
+    /**
+     * @param BuyNowBasketItem $basketItem
+     * @return AdminBuyNowBasketItemViewPage
+     */
+    public function setBasketItem($basketItem) {
         $this->basketItem = $basketItem;
-        $this->basketItemForm = $this->createBasketItemEditForm($basketItem);
+        if ($this->basketItem != null) {
+            $this->basketItemFields->getField(RequestParamsBuyNow::PRODUCT_ID)->setValue($basketItem->getProductId());
+            $this->basketItemFields->getField(RequestParamsBuyNow::BASKET_ITEM_PRODUCT_COUNT)->setValue($basketItem->getCount());
+            $this->basketItemFields->getField(RequestParamsBuyNow::BASKET_ITEM_PRODUCT_MAX_COUNT)->setValue($basketItem->getMaxCount());
+        }
+        return $this;
     }
 
     public function elementPageContent() {
         return
             $this->elementMessages()
             . element::br()
-            . $this->basketItemForm->generate();
+            . $this->elementBasketItemEditForm();
     }
 
     public function getNavItemId() {
@@ -65,28 +72,21 @@ class AdminBuyNowBasketItemViewPage extends AdminBuyNowPage implements SingleFor
     }
 
     /**
-     * @param $basketItem BuyNowBasketItem
-     * @return ConfigFormBridge
+     * @return string
      */
-    private function createBasketItemEditForm($basketItem) {
-        $managedFields = new ManagedFields();
-        $fieldProduct
-            = new ConfigFieldList(RequestParamsBuyNow::PRODUCT_ID, 'Product', '', true, $this->getProductsList());
-        $fieldCount
-            = new ConfigFieldNumber(RequestParamsBuyNow::BASKET_ITEM_PRODUCT_COUNT, 'Initial Count', '', true, new ValidatorNumeric());
-        $fieldMaxCount
-            = new ConfigFieldNumber(RequestParamsBuyNow::BASKET_ITEM_PRODUCT_MAX_COUNT, 'Max Count', '', true, new ValidatorNumeric());
-        $managedFields->addField($fieldProduct->setValue($basketItem->getProductId()));
-        $managedFields->addField($fieldCount->setValue($basketItem->getCount()));
-        $managedFields->addField($fieldMaxCount->setValue($basketItem->getMaxCount()));
-        $formKey = $basketItem->getId() != null ? AdminViewFieldsBuyNow::LABEL_BASKET_ITEM_EDIT : AdminViewFieldsBuyNow::LABEL_BASKET_ITEM_ADD;
-        $basketForm = new ConfigFormBridge($managedFields, $formKey, RedirectServiceBuyNow::basketItemAdd($basketItem->getBasketId()));
-        if ($basketItem->getId() != null) {
-            $basketForm->addFooterButtonDelete(RedirectServiceBuyNow::basketItemDelete($basketItem->getBasketId(), $basketItem->getId()));
-            $basketForm->addHiddenInput(RequestParamsBuyNow::BASKET_ITEM_ID, $basketItem->getId());
+    private function elementBasketItemEditForm() {
+        $formHRO = HROFactory::fromRegistry()->createFormBuilder()
+            ->setId($this->isEditMode() ? AdminViewFieldsBuyNow::BASKET_ITEM_EDIT_FORM : AdminViewFieldsBuyNow::BASKET_ITEM_ADD_FORM)
+            ->setAction(RedirectServiceBuyNow::basketItemAdd($this->basketItem->getBasketId()))
+            ->setManagedFields($this->basketItemFields)
+            ->addButtonSave()
+            ->addButtonCancel(RedirectServiceBuyNow::basketEdit($this->basketItem->getBasketId()));
+        if ($this->isEditMode()) {
+            $formHRO->addButtonDelete(RedirectServiceBuyNow::basketItemDelete($this->basketItem->getBasketId(), $this->basketItem->getId()));
+            $formHRO->addHiddenInput(RequestParamsBuyNow::BASKET_ITEM_ID, $this->basketItem->getId());
+
         }
-        $basketForm->addFooterButtonCancel(RedirectServiceBuyNow::basketEdit($basketItem->getBasketId()));
-        return $basketForm;
+        return $formHRO->build();
     }
 
     /**
@@ -102,7 +102,11 @@ class AdminBuyNowBasketItemViewPage extends AdminBuyNowPage implements SingleFor
         return $options;
     }
 
-    public function getForm() {
-        return $this->basketItemForm;
+    public function getFormFields() {
+        return $this->basketItemFields;
+    }
+
+    public function isEditMode() {
+        return $this->basketItem != null && $this->basketItem->getId() != null;
     }
 }

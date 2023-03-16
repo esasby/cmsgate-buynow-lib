@@ -28,10 +28,6 @@ abstract class ConfigStorageBuyNow extends ConfigStorageBridge
             return $this->merchant->getLogin();
         elseif ($key == $this->getConfigFieldPassword())
             return $this->merchant->getPassword();
-        elseif ($key == RequestParamsBuyNow::SHOP_CONFIG_NAME)
-            return BridgeConnectorBuyNow::fromRegistry()->getShopConfigService()->getSessionShopConfigSafe()->getName();
-        elseif ($key == RequestParamsBuyNow::SHOP_CONFIG_ACTIVE)
-            return BridgeConnectorBuyNow::fromRegistry()->getShopConfigService()->getSessionShopConfigSafe()->isActive();
         else
             return parent::getConfig($key);
     }

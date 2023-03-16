@@ -15,7 +15,6 @@ use esas\cmsgate\utils\CMSGateException;
 use esas\cmsgate\utils\htmlbuilder\page\PageUtils;
 use esas\cmsgate\utils\RequestUtils;
 use esas\cmsgate\utils\SessionUtilsBridge;
-use esas\cmsgate\utils\StringUtils;
 use esas\cmsgate\view\admin\AdminBuyNowBasketItemViewPage;
 use esas\cmsgate\view\RedirectServiceBuyNow;
 use Exception;
@@ -67,7 +66,8 @@ class AdminControllerBuyNowBasketItems extends Controller
             ->setProductId(RequestParamsBuyNow::getProductId())
             ->setCount(RequestParamsBuyNow::getBasketItemProductCount())
             ->setMaxCount(RequestParamsBuyNow::getBasketItemProductMaxCount());
-        $basketViewPage = new AdminBuyNowBasketItemViewPage($basketItem);
+        $basketViewPage = AdminBuyNowBasketItemViewPage::builder()
+            ->setBasketItem($basketItem);
         PageUtils::validateFormInputAndRenderOnError($basketViewPage);
         try {
             AdminControllerBuyNowBaskets::checkBasketPermission($basketItem->getBasketId());
@@ -78,7 +78,7 @@ class AdminControllerBuyNowBasketItems extends Controller
             RedirectServiceBuyNow::basketEdit($basketItem->getBasketId(), true);
         } catch (Exception $e) {
             Registry::getRegistry()->getMessenger()->addErrorMessage($e->getMessage());
-            $basketViewPage->render();
+            $basketViewPage->buildAndDisplay();
             exit(0);
         }
     }
@@ -87,7 +87,9 @@ class AdminControllerBuyNowBasketItems extends Controller
      * @param $basketItem BuyNowBasketItem
      */
     public function renderBasketItemViewPage($basketItem) {
-        (new AdminBuyNowBasketItemViewPage($basketItem))->render();
+       AdminBuyNowBasketItemViewPage::builder()
+           ->setBasketItem($basketItem)
+           ->buildAndDisplay();
         exit(0);
     }
 

@@ -8,8 +8,6 @@
 
 namespace esas\cmsgate\view\admin;
 
-use esas\cmsgate\view\ViewFields;
-
 /**
  * Перечисление полей, доступных на странице настроек плагина
  * Class AdminViewFields
@@ -20,16 +18,16 @@ class AdminViewFieldsBuyNow extends AdminViewFields
     const MENU_SHOP_CONFIGS = 'menu_shop_configs';
     const MENU_PRODUCTS = 'menu_products';
     const MENU_BASKETS = 'menu_baskets';
-    const LABEL_PRODUCT_LIST = 'label_product_list';
-    const LABEL_PRODUCT_EDIT = 'label_product_edit';
-    const LABEL_PRODUCT_ADD = 'label_product_add';
-    const LABEL_BASKET_LIST = 'label_basket_list';
-    const LABEL_BASKET_EDIT = 'label_basket_edit';
-    const LABEL_BASKET_ADD = 'label_basket_add';
-    const LABEL_BASKET_ITEM_LIST = 'label_basket_item_list';
-    const LABEL_BASKET_ITEM_EDIT = 'label_basket_item_edit';
-    const LABEL_BASKET_ITEM_ADD = 'label_basket_item_add';
-    const LABEL_SHOP_CONFIG_LIST = 'label_shop_config_list';
-    const LABEL_SHOP_CONFIG_EDIT = 'label_shop_config_edit';
-    const LABEL_SHOP_CONFIG_ADD = 'label_shop_config_add';
+    const PRODUCT_LIST = 'product_list';
+    const PRODUCT_EDIT_FORM = 'product_edit_form';
+    const PRODUCT_ADD_FORM = 'product_add_form';
+    const BASKET_LIST = 'basket_list';
+    const BASKET_EDIT_FORM = 'basket_edit_form';
+    const BASKET_ADD_FORM = 'basket_add_form';
+    const BASKET_ITEM_LIST = 'basket_item_list';
+    const BASKET_ITEM_EDIT_FORM = 'basket_item_edit_form';
+    const BASKET_ITEM_ADD_FORM = 'basket_item_add_form';
+    const SHOP_CONFIG_LIST = 'shop_config_list';
+    const SHOP_CONFIG_EDIT_FORM = 'shop_config_edit_form';
+    const SHOP_CONFIG_ADD_FORM = 'shop_config_add_form';
 }

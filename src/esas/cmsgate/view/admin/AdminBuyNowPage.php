@@ -9,16 +9,15 @@ use esas\cmsgate\lang\Translator;
 use esas\cmsgate\Registry;
 use esas\cmsgate\utils\htmlbuilder\Attributes as attribute;
 use esas\cmsgate\utils\htmlbuilder\Elements as element;
-use esas\cmsgate\utils\htmlbuilder\presets\ScriptsPreset as script;
-use esas\cmsgate\utils\htmlbuilder\presets\CssPreset as css;
+use esas\cmsgate\utils\htmlbuilder\hro\pages\PageHRO;
 use esas\cmsgate\utils\htmlbuilder\presets\BootstrapPreset as bootstrap;
-use esas\cmsgate\utils\htmlbuilder\Page;
+use esas\cmsgate\utils\htmlbuilder\presets\CssPreset as css;
+use esas\cmsgate\utils\htmlbuilder\presets\ScriptsPreset as script;
 use esas\cmsgate\utils\RedirectUtilsBridge;
 use esas\cmsgate\view\RedirectServiceBuyNow;
 
-abstract class AdminBuyNowPage extends Page
+abstract class AdminBuyNowPage extends PageHRO
 {
-
     public function elementPageHead()
     {
         return element::head(

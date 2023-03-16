@@ -8,12 +8,11 @@ use esas\cmsgate\bridge\ShopConfigBuyNow;
 use esas\cmsgate\BridgeConnectorBuyNow;
 use esas\cmsgate\buynow\BuyNowBasket;
 use esas\cmsgate\buynow\BuyNowBasketItem;
-use esas\cmsgate\lang\Translator;
 use esas\cmsgate\protocol\RequestParamsBuyNow;
 use esas\cmsgate\utils\htmlbuilder\Attributes as attribute;
 use esas\cmsgate\utils\htmlbuilder\Elements as element;
-use esas\cmsgate\utils\htmlbuilder\hro\cards\CardButtonsRowHRO;
-use esas\cmsgate\utils\htmlbuilder\page\SingleFormPage;
+use esas\cmsgate\utils\htmlbuilder\hro\HROFactory;
+use esas\cmsgate\utils\htmlbuilder\page\AddOrUpdatePage;
 use esas\cmsgate\utils\htmlbuilder\presets\TablePreset;
 use esas\cmsgate\utils\SessionUtilsBridge;
 use esas\cmsgate\view\admin\fields\ConfigFieldCheckbox;
@@ -22,21 +21,18 @@ use esas\cmsgate\view\admin\fields\ConfigFieldText;
 use esas\cmsgate\view\admin\fields\ConfigFieldTextarea;
 use esas\cmsgate\view\admin\fields\ListOption;
 use esas\cmsgate\view\admin\validators\ValidatorNotEmpty;
-use esas\cmsgate\view\hro\CardBuyNowHRO;
-use esas\cmsgate\view\hro\TableBuyNowHRO;
 use esas\cmsgate\view\RedirectServiceBuyNow;
-use Exception;
 
-class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements SingleFormPage
+class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements AddOrUpdatePage
 {
     /**
      * @var BuyNowBasket
      */
     private $basket;
     /**
-     * @var ConfigFormBridge
+     * @var ManagedFields
      */
-    private $basketForm;
+    private $basketFields;
 
     /**
      * @var BuyNowBasketItem[]
@@ -45,22 +41,47 @@ class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements SingleFormPag
 
     /**
      * AdminBuyNowBasketViewPage constructor.
-     * @param $basket BuyNowBasket
      */
-    public function __construct($basket) {
+    public function __construct() {
         parent::__construct();
+        $this->basketFields = new ManagedFields();
+        $this->basketFields
+            ->addField(new ConfigFieldText(RequestParamsBuyNow::BASKET_NAME, 'Name', '', true, new ValidatorNotEmpty(), false))
+            ->addField(new ConfigFieldTextarea(RequestParamsBuyNow::BASKET_DESCRIPTION, 'Description', '', true, null, 20, 4))
+            ->addField(new ConfigFieldList(RequestParamsBuyNow::BASKET_SHOP_CONFIG_ID, 'Shop config', '', true, $this->getShopConfigsList()))
+            ->addField(new ConfigFieldCheckbox(RequestParamsBuyNow::BASKET_ACTIVE, 'Active?', '', true, null))
+            ->addField(new ConfigFieldCheckbox(RequestParamsBuyNow::BASKET_ASK_NAME, 'Ask name?', '', true, null))
+            ->addField(new ConfigFieldCheckbox(RequestParamsBuyNow::BASKET_ASK_EMAIL, 'Ask email?', '', true, null))
+            ->addField(new ConfigFieldCheckbox(RequestParamsBuyNow::BASKET_ASK_PHONE, 'Ask phone?', '', true, null));
+    }
+
+    /**
+     * @param BuyNowBasket $basket
+     * @return AdminBuyNowBasketViewPage
+     */
+    public function setBasket($basket) {
         $this->basket = $basket;
-        $this->basketForm = $this->createBasketEditForm($basket);
+        if ($this->basket != null) {
+            $this->basketFields->getField(RequestParamsBuyNow::BASKET_NAME)->setValue($basket->getName());
+            $this->basketFields->getField(RequestParamsBuyNow::BASKET_DESCRIPTION)->setValue($basket->getDescription());
+            $this->basketFields->getField(RequestParamsBuyNow::BASKET_SHOP_CONFIG_ID)->setValue($basket->getShopConfigId());
+            $this->basketFields->getField(RequestParamsBuyNow::BASKET_ACTIVE)->setValue($basket->isActive());
+            $this->basketFields->getField(RequestParamsBuyNow::BASKET_ASK_NAME)->setValue($basket->isAskFIO());
+            $this->basketFields->getField(RequestParamsBuyNow::BASKET_ASK_EMAIL)->setValue($basket->isAskEmail());
+            $this->basketFields->getField(RequestParamsBuyNow::BASKET_ASK_PHONE)->setValue($basket->isAskPhone());
+        }
         if ($this->basket->getId() != null) {
             $this->basketItems = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketItemRepository()->getByBasketId($basket->getId());
         }
+        return $this;
     }
+
 
     public function elementPageContent() {
         return
             $this->elementMessages()
             . element::br()
-            . $this->basketForm->generate()
+            . $this->elementBasketEditForm()
             . $this->elementBasketItemsPanel();
     }
 
@@ -70,39 +91,20 @@ class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements SingleFormPag
 
     /**
      * @param $basket BuyNowBasket
-     * @return ConfigFormBridge
+     * @return string
      */
-    private function createBasketEditForm($basket) {
-        $managedFields = new ManagedFields();
-        $fieldName
-            = new ConfigFieldText(RequestParamsBuyNow::BASKET_NAME, 'Name', '', true, new ValidatorNotEmpty(), false);
-        $fieldDescription
-            = new ConfigFieldTextarea(RequestParamsBuyNow::BASKET_DESCRIPTION, 'Description', '', true, null, 20, 4);
-        $fieldShopConfig
-            = new ConfigFieldList(RequestParamsBuyNow::BASKET_SHOP_CONFIG_ID, 'Shop config', '', true, $this->getShopConfigsList());
-        $fieldActive
-            = new ConfigFieldCheckbox(RequestParamsBuyNow::BASKET_ACTIVE, 'Active?', '', true, null);
-        $fieldAskName
-            = new ConfigFieldCheckbox(RequestParamsBuyNow::BASKET_ASK_NAME, 'Ask name?', '', true, null);
-        $fieldAskEmail
-            = new ConfigFieldCheckbox(RequestParamsBuyNow::BASKET_ASK_EMAIL, 'Ask email?', '', true, null);
-        $fieldAskPhone
-            = new ConfigFieldCheckbox(RequestParamsBuyNow::BASKET_ASK_PHONE, 'Ask phone?', '', true, null);
-        $managedFields->addField($fieldName->setValue($basket->getName()));
-        $managedFields->addField($fieldDescription->setValue($basket->getDescription()));
-        $managedFields->addField($fieldShopConfig->setValue($basket->getShopConfigId()));
-        $managedFields->addField($fieldActive->setValue($basket->isActive()));
-        $managedFields->addField($fieldAskName->setValue($basket->isAskFIO()));
-        $managedFields->addField($fieldAskEmail->setValue($basket->isAskEmail()));
-        $managedFields->addField($fieldAskPhone->setValue($basket->isAskPhone()));
-        $formKey = $basket->getId() != null ? AdminViewFieldsBuyNow::LABEL_BASKET_EDIT : AdminViewFieldsBuyNow::LABEL_BASKET_ADD;
-        $basketForm = new ConfigFormBridge($managedFields, $formKey, RedirectServiceBuyNow::basketList());
-        if ($basket->getId() != null) {
-            $basketForm->addFooterButtonDelete(RedirectServiceBuyNow::basketDelete($basket->getId()));
-            $basketForm->addHiddenInput(RequestParamsBuyNow::BASKET_ID, $basket->getId());
+    private function elementBasketEditForm() {
+        $formHRO = HROFactory::fromRegistry()->createFormBuilder()
+            ->setId($this->isEditMode() ? AdminViewFieldsBuyNow::BASKET_EDIT_FORM : AdminViewFieldsBuyNow::BASKET_ADD_FORM)
+            ->setAction(RedirectServiceBuyNow::basketList())
+            ->setManagedFields($this->basketFields)
+            ->addButtonSave()
+            ->addButtonCancel(RedirectServiceBuyNow::basketList());
+        if ($this->isEditMode()) {
+            $formHRO->addButtonDelete(RedirectServiceBuyNow::basketDelete($this->basket->getId()));
+            $formHRO->addHiddenInput(RequestParamsBuyNow::BASKET_ID, $this->basket->getId());
         }
-        $basketForm->addFooterButtonCancel(RedirectServiceBuyNow::basketList());
-        return $basketForm;
+        return $formHRO->build();
     }
 
     /**
@@ -118,24 +120,19 @@ class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements SingleFormPag
         return $options;
     }
 
-    public function getForm() {
-        return $this->basketForm;
+    public function getFormFields() {
+        return $this->basketFields;
     }
 
     protected function elementBasketItemsPanel() {
         if ($this->basket->getId() == null)
             return '';
         return element::br() .
-            CardBuyNowHRO::builder()
-                ->setCardHeaderI18n(AdminViewFieldsBuyNow::LABEL_BASKET_ITEM_LIST)
-                ->setCardBody(TableBuyNowHRO::builder()
-                    ->setTableHeaderColumns(['Id', 'Product', 'Count', 'Max count', 'Created At'])
-                    ->setTableBody($this->elementBasketItemsTableBody())
-                    ->build())
-                ->setCardFooter(CardButtonsRowHRO::builder()
-                    ->addButtonI18n(AdminViewFields::ADD, RedirectServiceBuyNow::basketItemAdd($this->basket->getId()), 'btn-secondary')
-                    ->build()
-                )
+            HROFactory::fromRegistry()->createDataListBuilder()
+                ->setMainLabel(AdminViewFieldsBuyNow::BASKET_ITEM_LIST)
+                ->setTableHeaderColumns(['Id', 'Product', 'Count', 'Max count', 'Created At'])
+                ->setTableBody($this->elementBasketItemsTableBody())
+                ->addFooterButtonAdd(RedirectServiceBuyNow::basketItemAdd($this->basket->getId()))
                 ->build();
     }
 
@@ -159,5 +156,13 @@ class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements SingleFormPag
             element::td($basketItem->getMaxCount()),
             element::td($basketItem->getCreatedAt())
         );
+    }
+
+    public static function builder() {
+        return new AdminBuyNowBasketViewPage();
+    }
+
+    public function isEditMode() {
+        return $this->basket != null && $this->basket->getId() != null;
     }
 }

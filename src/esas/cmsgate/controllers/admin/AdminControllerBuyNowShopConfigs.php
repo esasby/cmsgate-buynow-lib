@@ -40,14 +40,15 @@ class AdminControllerBuyNowShopConfigs extends Controller
                 }
                 $this->renderShopConfigListPage();
             } elseif (StringUtils::endsWith($request, RedirectServiceBuyNow::PATH_ADMIN_SHOP_CONFIGS_ADD)) {
-                $this->renderShopConfigViewPage();
+                $shopConfig = new ShopConfigBuyNow();
+                $this->renderShopConfigViewPage($shopConfig);
             } elseif (preg_match(self::PATTERN_SHOP_CONFIGS_DELETE, $request, $pathParams)) {
                 $shopConfig = $this->checkShopConfigPermission($pathParams['shopConfigId']);
                 BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->deleteById($shopConfig->getUuid());
                 $this->renderShopConfigListPage();
             } elseif (preg_match(self::PATTERN_SHOP_CONFIGS_EDIT, $request, $pathParams)) {
-                $this->checkShopConfigPermission($pathParams['shopConfigId']);
-                $this->renderShopConfigViewPage();
+                $shopConfig = $this->checkShopConfigPermission($pathParams['shopConfigId']);
+                $this->renderShopConfigViewPage($shopConfig);
             } else {
                 $this->renderShopConfigListPage();
             }
@@ -67,20 +68,15 @@ class AdminControllerBuyNowShopConfigs extends Controller
             if (RequestParamsBuyNow::getShopConfigId() != null) {
                 $this->checkShopConfigPermission(RequestParamsBuyNow::getShopConfigId());
             }
-//            else {
-//                $newId = StringUtils::guidv4();
-//                SessionUtilsBridge::setShopConfigUUID($newId);
-//            }
             $shopConfig = new ShopConfigBuyNow();
             $shopConfig
                 ->setUuid(RequestParamsBuyNow::getShopConfigId())
                 ->setName(RequestParamsBuyNow::getShopConfigName())
                 ->setActive(RequestParamsBuyNow::getShopConfigActive())
                 ->setMerchantId(SessionUtilsBridge::getMerchantUUID())
-                ->setConfigArray(FormUtils::extractInputsFromRequest($shopConfigViewPage->getForm(), [RequestParamsBuyNow::SHOP_CONFIG_NAME, RequestParamsBuyNow::SHOP_CONFIG_ACTIVE]))
-            ;
+                ->setConfigArray(FormUtils::extractInputsFromRequest($shopConfigViewPage->getFormFields(), [RequestParamsBuyNow::SHOP_CONFIG_NAME, RequestParamsBuyNow::SHOP_CONFIG_ACTIVE]));
             BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->saveOrUpdate($shopConfig);
-            $this->renderShopConfigListPage();
+            RedirectServiceBuyNow::shopConfigList(true);
         } catch (Exception $e) {
             Registry::getRegistry()->getMessenger()->addErrorMessage($e->getMessage());
             $shopConfigViewPage->render();
@@ -89,16 +85,29 @@ class AdminControllerBuyNowShopConfigs extends Controller
     }
 
     public function renderShopConfigListPage() {
-        (new AdminBuyNowShopConfigListPage())->render();
+        AdminBuyNowShopConfigListPage::builder()
+            ->setShopConfigList(BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->getByMerchantId(SessionUtilsBridge::getMerchantUUID()))
+            ->buildAndDisplay();
         exit(0);
     }
 
-    public function renderShopConfigViewPage() {
-        (new AdminBuyNowShopConfigViewPage())->render();
+    /**
+     * @param $shopConfig ShopConfigBuyNow
+     */
+    public function renderShopConfigViewPage($shopConfig) {
+        AdminBuyNowShopConfigViewPage::builder()
+            ->setShopConfig($shopConfig)
+            ->buildAndDisplay();
         exit(0);
     }
 
+    /**
+     * @param $shopConfigId
+     * @return ShopConfigBuyNow
+     * @throws CMSGateException
+     */
     public static function checkShopConfigPermission($shopConfigId) {
+        /** @var ShopConfigBuyNow $shopConfig */
         $shopConfig = BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->getByUUID($shopConfigId);
         if ($shopConfig == null || $shopConfig->getMerchantId() != SessionUtilsBridge::getMerchantUUID())
             throw new CMSGateException('This shop config can not be managed by current merchant');

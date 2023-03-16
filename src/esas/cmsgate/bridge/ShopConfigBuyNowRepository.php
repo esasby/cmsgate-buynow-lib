@@ -4,7 +4,7 @@
 namespace esas\cmsgate\bridge;
 
 
-use esas\cmsgate\doa\SingleTableRepository;
+use esas\cmsgate\dao\SingleTableRepository;
 
 abstract class ShopConfigBuyNowRepository extends ShopConfigRepository implements SingleTableRepository
 {
