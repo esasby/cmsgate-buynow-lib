@@ -16,4 +16,6 @@ abstract class PropertiesBuyNow implements PDOConnectionProperties, SandboxPrope
     {
         return Registry::getRegistry()->getProperties();
     }
+
+    public abstract function getDefaultClientUICssLink();
 }

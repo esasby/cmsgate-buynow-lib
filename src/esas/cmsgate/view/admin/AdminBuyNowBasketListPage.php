@@ -8,7 +8,7 @@ use esas\cmsgate\BridgeConnectorBuyNow;
 use esas\cmsgate\buynow\BuyNowBasket;
 use esas\cmsgate\utils\htmlbuilder\Attributes as attribute;
 use esas\cmsgate\utils\htmlbuilder\Elements as element;
-use esas\cmsgate\utils\htmlbuilder\hro\HROFactory;
+use esas\cmsgate\utils\htmlbuilder\hro\HROFactoryCmsGate;
 use esas\cmsgate\utils\htmlbuilder\presets\TablePreset;
 use esas\cmsgate\view\RedirectServiceBuyNow;
 
@@ -27,9 +27,9 @@ class AdminBuyNowBasketListPage extends AdminBuyNowPage
 
     public function elementPageContent() {
         return
-            HROFactory::fromRegistry()->createDataListBuilder()
+            HROFactoryCmsGate::fromRegistry()->createDataListBuilder()
                 ->setMainLabel(AdminViewFieldsBuyNow::BASKET_LIST)
-                ->setTableHeaderColumns(['Id', 'Shop config', 'Name', 'Description', 'Active', 'Ask name', 'Ask phone', 'Ask email', 'Checkout counter', 'Created At'])
+                ->setTableHeaderColumns(['Id', 'Shop config', 'Name', 'Active', 'Ask name', 'Ask phone', 'Ask email', 'Checkout counter', 'Created At'])
                 ->setTableBody($this->elementBasketTableBody())
                 ->addFooterButtonAdd(RedirectServiceBuyNow::basketAdd())
                 ->build();
@@ -53,7 +53,6 @@ class AdminBuyNowBasketListPage extends AdminBuyNowPage
             element::td(TablePreset::elementTdStretchedLink($basket->getId(), RedirectServiceBuyNow::basketEdit($basket->getId()))),
             element::td($shopConfig->getName()), //todo name
             element::td($basket->getName()),
-            element::td($basket->getDescription()),
             element::td(TablePreset::elementTdSwitch($basket->isActive())),
             element::td(TablePreset::elementTdSwitch($basket->isAskFIO())),
             element::td(TablePreset::elementTdSwitch($basket->isAskPhone())),

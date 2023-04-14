@@ -8,8 +8,7 @@ use esas\cmsgate\BridgeConnectorBuyNow;
 use esas\cmsgate\buynow\BuyNowBasketItem;
 use esas\cmsgate\buynow\BuyNowProduct;
 use esas\cmsgate\protocol\RequestParamsBuyNow;
-use esas\cmsgate\utils\htmlbuilder\Elements as element;
-use esas\cmsgate\utils\htmlbuilder\hro\HROFactory;
+use esas\cmsgate\utils\htmlbuilder\hro\HROFactoryCmsGate;
 use esas\cmsgate\utils\htmlbuilder\page\AddOrUpdatePage;
 use esas\cmsgate\utils\SessionUtilsBridge;
 use esas\cmsgate\view\admin\fields\ConfigFieldList;
@@ -61,10 +60,7 @@ class AdminBuyNowBasketItemViewPage extends AdminBuyNowPage implements AddOrUpda
     }
 
     public function elementPageContent() {
-        return
-            $this->elementMessages()
-            . element::br()
-            . $this->elementBasketItemEditForm();
+        return $this->elementBasketItemEditForm();
     }
 
     public function getNavItemId() {
@@ -75,7 +71,7 @@ class AdminBuyNowBasketItemViewPage extends AdminBuyNowPage implements AddOrUpda
      * @return string
      */
     private function elementBasketItemEditForm() {
-        $formHRO = HROFactory::fromRegistry()->createFormBuilder()
+        $formHRO = HROFactoryCmsGate::fromRegistry()->createFormBuilder()
             ->setId($this->isEditMode() ? AdminViewFieldsBuyNow::BASKET_ITEM_EDIT_FORM : AdminViewFieldsBuyNow::BASKET_ITEM_ADD_FORM)
             ->setAction(RedirectServiceBuyNow::basketItemAdd($this->basketItem->getBasketId()))
             ->setManagedFields($this->basketItemFields)
@@ -97,7 +93,7 @@ class AdminBuyNowBasketItemViewPage extends AdminBuyNowPage implements AddOrUpda
         /** @var BuyNowProduct[] $products */
         $products = BridgeConnectorBuyNow::fromRegistry()->getBuyNowProductRepository()->getByMerchantId(SessionUtilsBridge::getMerchantUUID());
         foreach ($products as $product) {
-            $options[] = new ListOption($product->getId(), $product->getName());
+            $options[] = new ListOption($product->getId(), $product->getName() . ' #' . $product->getSku() . '');
         }
         return $options;
     }

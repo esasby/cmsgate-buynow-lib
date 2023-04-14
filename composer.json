@@ -18,8 +18,9 @@
   "require": {
     "php": ">= 5.6.0",
     "ext-curl": "*",
-    "esas/cmsgate-core": "~v1.17.15",
-    "esas/cmsgate-bridge-lib": "~v1.19.1"
+    "esas/cmsgate-core": "~v1.18.1",
+    "esas/cmsgate-bridge-lib": "~v1.19.1",
+    "symfony/serializer": "~5.4.21"
   },
   "autoload": {
     "psr-4": {

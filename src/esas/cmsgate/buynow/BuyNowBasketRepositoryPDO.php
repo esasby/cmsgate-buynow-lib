@@ -25,6 +25,8 @@ class BuyNowBasketRepositoryPDO extends BuyNowBasketRepository
     const COLUMN_ASK_PHONE = 'ask_phone';
     const COLUMN_ASK_EMAIL = 'ask_email';
     const COLUMN_ASK_FIO = 'ask_fio';
+    const COLUMN_RETURN_URL = 'return_url';
+    const COLUMN_CLIENT_UI_CSS = 'client_ui_css';
     const COLUMN_CREATED_AT = 'created_at';
     const COLUMN_CHECKOUT_COUNT = 'checkout_count';
 
@@ -49,7 +51,7 @@ class BuyNowBasketRepositoryPDO extends BuyNowBasketRepository
             while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
                 $uuid = $row[self::COLUMN_ID];
                 $this->logger->info("Updating basket with id[" . $uuid . "]");
-                $sql = "UPDATE $this->tableName set shop_config_id = :shop_config_id, active = :active, name = :name, description = :description, ask_phone = :ask_phone, ask_email = :ask_email, ask_fio = :ask_fio where id = :id";
+                $sql = "UPDATE $this->tableName set shop_config_id = :shop_config_id, active = :active, name = :name, description = :description, ask_phone = :ask_phone, ask_email = :ask_email, ask_fio = :ask_fio, return_url = :return_url, client_ui_css = :client_ui_css  where id = :id";
                 $stmt = $this->pdo->prepare($sql);
                 $stmt->execute([
                     'id' => $basket->getId(),
@@ -60,12 +62,14 @@ class BuyNowBasketRepositoryPDO extends BuyNowBasketRepository
                     self::COLUMN_ASK_PHONE => $basket->isAskPhone() ? 1 : 0,
                     self::COLUMN_ASK_EMAIL => $basket->isAskEmail() ? 1 : 0,
                     self::COLUMN_ASK_FIO => $basket->isAskFIO() ? 1 : 0,
+                    self::COLUMN_RETURN_URL => $basket->getReturnUrl(),
+                    self::COLUMN_CLIENT_UI_CSS => $basket->getClientUICss(),
                 ]);
                 return $uuid;
             }
         }
         $uuid = StringUtils::guidv4();
-        $sql = "INSERT INTO $this->tableName (id, shop_config_id, name, description, active, ask_phone, ask_email, ask_fio, checkout_count, created_at) VALUES (:id, :shop_config_id, :name, :description, :active, :ask_phone, :ask_email, :ask_fio, 0, CURRENT_TIMESTAMP)";
+        $sql = "INSERT INTO $this->tableName (id, shop_config_id, name, description, active, ask_phone, ask_email, ask_fio, return_url, client_ui_css, checkout_count, created_at) VALUES (:id, :shop_config_id, :name, :description, :active, :ask_phone, :ask_email, :ask_fio, :return_url, :client_ui_css, 0, CURRENT_TIMESTAMP)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'id' => $uuid,
@@ -76,6 +80,8 @@ class BuyNowBasketRepositoryPDO extends BuyNowBasketRepository
             self::COLUMN_ASK_PHONE => $basket->isAskPhone() ? 1 : 0,
             self::COLUMN_ASK_EMAIL => $basket->isAskEmail() ? 1 : 0,
             self::COLUMN_ASK_FIO => $basket->isAskFIO() ? 1 : 0,
+            self::COLUMN_RETURN_URL => $basket->getReturnUrl(),
+            self::COLUMN_CLIENT_UI_CSS => $basket->getClientUICss(),
         ]);
         $this->logger->info("Basket was saved by id[" . $uuid . "]");
         return $uuid;
@@ -120,6 +126,8 @@ class BuyNowBasketRepositoryPDO extends BuyNowBasketRepository
             ->setAskFIO($row[self::COLUMN_ASK_FIO])
             ->setAskPhone($row[self::COLUMN_ASK_PHONE])
             ->setAskEmail($row[self::COLUMN_ASK_EMAIL])
+            ->setReturnUrl($row[self::COLUMN_RETURN_URL])
+            ->setClientUICss($row[self::COLUMN_CLIENT_UI_CSS])
             ->setCheckoutCount($row[self::COLUMN_CHECKOUT_COUNT]);
         return $basket;
     }
@@ -139,11 +147,11 @@ class BuyNowBasketRepositoryPDO extends BuyNowBasketRepository
         $stmt->execute([
             'merchant_id' => $merchantId,
         ]);
-        $products = array();
+        $baskets = array();
         while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
-            $products[] =  $this->createBasketObject($row);
+            $baskets[] =  $this->createBasketObject($row);
         }
-        return $products;
+        return $baskets;
     }
 
     public function deleteById($productId) {
@@ -152,5 +160,23 @@ class BuyNowBasketRepositoryPDO extends BuyNowBasketRepository
         $stmt->execute([
             'id' => $productId,
         ]);
+    }
+
+    public function getByProductId($productId) {
+        $basketItemTable = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketItemRepository()->getTableName();
+        $sql = "select b.* from $this->tableName b, $basketItemTable bi  where b.id = bi.basket_id and bi.product_id = :product_id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            'product_id' => $productId,
+        ]);
+        $baskets = array();
+        while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
+            $baskets[] =  $this->createBasketObject($row);
+        }
+        return $baskets;
+    }
+
+    public function getTableName() {
+        return $this->tableName;
     }
 }

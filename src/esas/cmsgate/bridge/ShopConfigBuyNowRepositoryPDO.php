@@ -103,7 +103,7 @@ class ShopConfigBuyNowRepositoryPDO extends ShopConfigBuyNowRepository
     }
 
 
-    public function getByUUID($cacheConfigUUID) {
+    public function getById($cacheConfigUUID) {
         $sql = "select * from $this->tableName where id = :id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
@@ -127,6 +127,7 @@ class ShopConfigBuyNowRepositoryPDO extends ShopConfigBuyNowRepository
         while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
             $newOrderId = $row[self::COLUMN_ORDER_COUNTER];
         }
+        $this->pdo->commit();
         return $newOrderId;
     }
 
@@ -140,6 +141,9 @@ class ShopConfigBuyNowRepositoryPDO extends ShopConfigBuyNowRepository
         ]);
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getByMerchantId($merchantId) {
         $sql = "select * from $this->tableName where merchant_id = :merchant_id";
         $stmt = $this->pdo->prepare($sql);

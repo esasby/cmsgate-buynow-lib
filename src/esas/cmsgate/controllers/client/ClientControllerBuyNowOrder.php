@@ -1,30 +1,57 @@
 <?php
 
 
-namespace esas\cmsgate\controllers\admin;
+namespace esas\cmsgate\controllers\client;
 
 
-use esas\cmsgate\BridgeConnector;
-use esas\cmsgate\controllers\Controller;
+use esas\cmsgate\bridge\OrderDataBuyNow;
+use esas\cmsgate\BridgeConnectorBuyNow;
+use esas\cmsgate\epos\controllers\ControllerEposCompletionPanel;
+use esas\cmsgate\epos\controllers\ControllerEposInvoiceAdd;
 use esas\cmsgate\Registry;
+use esas\cmsgate\utils\htmlbuilder\hro\HROFactory;
+use esas\cmsgate\utils\SessionUtilsBridge;
 use Exception;
 use Throwable;
 
-class ClientControllerBuyNowOrder extends Controller
+class ClientControllerBuyNowOrder extends ClientControllerBuyNow
 {
-    public function process()
-    {
-        (new ControllerBridgeCheckAuth())->process(true);
+    protected $orderId;
+
+    /**
+     * ClientControllerBuyNowOrder constructor.
+     * @param $orderId
+     */
+    public function __construct($orderId) {
+        parent::__construct();
+        $this->orderId = $orderId;
+    }
+
+    public function process() {
         try {
-            if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                Registry::getRegistry()->getConfigForm()->validate();
-                Registry::getRegistry()->getConfigForm()->save();
+//            $order = BridgeConnectorBuyNow::fromRegistry()->getOrderCacheRepository()->getByUUID($this->orderId);
+            $completionPageBuilder = HROFactory::fromRegistry()->createClientOrderCompletionPage();
+            BridgeConnectorBuyNow::fromRegistry()->getOrderCacheService()->loadSessionOrderCacheById($this->orderId);
+            $orderWrapper = Registry::getRegistry()->getOrderWrapperForCurrentUser();
+            $completionPageBuilder->setOrderWrapper($orderWrapper);
+            /** @var OrderDataBuyNow $orderData */
+            $orderData = SessionUtilsBridge::getOrderCacheObj()->getOrderData();
+            $basket = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->getById($orderData->getBasketId());
+            $completionPageBuilder->addCssLink($this->getClientUICssLink($basket));
+            if ($orderWrapper->getExtId() == null || $orderWrapper->getExtId() == '') {
+                $controller = new ControllerEposInvoiceAdd();
+                $controller->process($orderWrapper);
             }
+            $controller = new ControllerEposCompletionPanel();
+            $completionPanel = $controller->process($orderWrapper);
+            $completionPanel = $completionPanel->__toString();
+            $completionPageBuilder->setElementCompletionPanel($completionPanel);
         } catch (Throwable $e) {
             Registry::getRegistry()->getMessenger()->addErrorMessage($e->getMessage());
         } catch (Exception $e) { // для совместимости с php 5
             Registry::getRegistry()->getMessenger()->addErrorMessage($e->getMessage());
+        } finally {
+            $completionPageBuilder->render();
         }
-        BridgeConnector::fromRegistry()->getAdminConfigPage()->render();
     }
 }

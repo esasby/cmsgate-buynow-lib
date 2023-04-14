@@ -7,7 +7,7 @@ namespace esas\cmsgate\view\admin;
 use esas\cmsgate\buynow\BuyNowProduct;
 use esas\cmsgate\utils\htmlbuilder\Attributes as attribute;
 use esas\cmsgate\utils\htmlbuilder\Elements as element;
-use esas\cmsgate\utils\htmlbuilder\hro\HROFactory;
+use esas\cmsgate\utils\htmlbuilder\hro\HROFactoryCmsGate;
 use esas\cmsgate\utils\htmlbuilder\presets\TablePreset;
 use esas\cmsgate\view\RedirectServiceBuyNow;
 
@@ -26,9 +26,9 @@ class AdminBuyNowProductListPage extends AdminBuyNowPage
 
     public function elementPageContent() {
         return
-            HROFactory::fromRegistry()->createDataListBuilder()
+            HROFactoryCmsGate::fromRegistry()->createDataListBuilder()
                 ->setMainLabel(AdminViewFieldsBuyNow::PRODUCT_LIST)
-                ->setTableHeaderColumns(['Id', 'SKU', 'Name', 'Description', 'Active', 'Price', 'Currency', 'Created At'])
+                ->setTableHeaderColumns(['Id', 'SKU', 'Name', 'Description', 'Image', 'Active', 'Price', 'Currency', 'Created At'])
                 ->setTableBody($this->elementProductTableBody())
                 ->addFooterButtonAdd(RedirectServiceBuyNow::productAdd())
                 ->build();
@@ -52,6 +52,11 @@ class AdminBuyNowProductListPage extends AdminBuyNowPage
             element::td($product->getSku()),
             element::td($product->getName()),
             element::td($product->getDescription()),
+            element::td(element::img(
+                attribute::src($product->getImage()),
+                attribute::clazz('img-thumbnail'),
+                attribute::width('200')
+            )),
             element::td(TablePreset::elementTdSwitch($product->isActive())),
             element::td($product->getPrice()),
             element::td($product->getCurrency()),

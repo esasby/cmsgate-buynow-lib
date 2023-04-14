@@ -12,6 +12,7 @@ use esas\cmsgate\protocol\RequestParamsBuyNow;
 use esas\cmsgate\Registry;
 use esas\cmsgate\utils\CMSGateException;
 use esas\cmsgate\utils\htmlbuilder\page\PageUtils;
+use esas\cmsgate\utils\Logger;
 use esas\cmsgate\utils\RequestUtils;
 use esas\cmsgate\utils\SessionUtilsBridge;
 use esas\cmsgate\utils\StringUtils;
@@ -68,8 +69,10 @@ class AdminControllerBuyNowBaskets extends Controller
             ->setAskFIO(RequestParamsBuyNow::getBasketAskName())
             ->setAskEmail(RequestParamsBuyNow::getBasketAskEmail())
             ->setAskPhone(RequestParamsBuyNow::getBasketAskPhone())
+            ->setReturnUrl(RequestParamsBuyNow::getBasketReturnUrl())
+            ->setClientUICss(RequestParamsBuyNow::getClientUICss())
         ;
-        $basketViewPage = new AdminBuyNowBasketViewPage($basket);
+        $basketViewPage = new AdminBuyNowBasketViewPage();
         PageUtils::validateFormInputAndRenderOnError($basketViewPage);
         try {
             AdminControllerBuyNowShopConfigs::checkShopConfigPermission($basket->getShopConfigId());
@@ -93,9 +96,30 @@ class AdminControllerBuyNowBaskets extends Controller
     }
 
     public function renderBasketViewPage($basket) {
+
         AdminBuyNowBasketViewPage::builder()
-            ->setBasket($basket)->buildAndDisplay();
+            ->setBasket($basket)
+            ->setBasketItems(self::getBasketItemList($basket))
+            ->buildAndDisplay();
         exit(0);
+    }
+
+    public static function getBasketItemList($basket) {
+        $basketItems = array();
+        if ($basket->getId() != null) {
+            foreach (BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketItemRepository()->getByBasketId($basket->getId()) as $item) {
+                try {
+                    AdminControllerBuyNowProducts::checkProductPermission($item->getProductId());
+                    $basketItems[] = $item;
+                } catch (CMSGateException $e) {
+                    Logger::getLogger('BasketsController')->error("Error: ", $e);
+                    BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketItemRepository()->deleteById($item->getId());
+                    Logger::getLogger('BasketsController')->info('Basket item[' . $item->getId() . '] was deleted');
+
+                }
+            }
+        }
+        return $basketItems;
     }
 
     public static function checkBasketPermission($basketId) {

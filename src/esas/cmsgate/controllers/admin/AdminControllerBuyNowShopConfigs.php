@@ -4,11 +4,9 @@
 namespace esas\cmsgate\controllers\admin;
 
 
-use esas\cmsgate\bridge\ShopConfigBridge;
 use esas\cmsgate\bridge\ShopConfigBuyNow;
 use esas\cmsgate\BridgeConnector;
 use esas\cmsgate\BridgeConnectorBuyNow;
-use esas\cmsgate\buynow\BuyNowProduct;
 use esas\cmsgate\controllers\Controller;
 use esas\cmsgate\protocol\RequestParamsBuyNow;
 use esas\cmsgate\Registry;
@@ -18,7 +16,6 @@ use esas\cmsgate\utils\htmlbuilder\page\PageUtils;
 use esas\cmsgate\utils\RequestUtils;
 use esas\cmsgate\utils\SessionUtilsBridge;
 use esas\cmsgate\utils\StringUtils;
-use esas\cmsgate\utils\URLUtils;
 use esas\cmsgate\view\admin\AdminBuyNowShopConfigListPage;
 use esas\cmsgate\view\admin\AdminBuyNowShopConfigViewPage;
 use esas\cmsgate\view\RedirectServiceBuyNow;
@@ -95,8 +92,12 @@ class AdminControllerBuyNowShopConfigs extends Controller
      * @param $shopConfig ShopConfigBuyNow
      */
     public function renderShopConfigViewPage($shopConfig) {
+        $linkedBaskets = null;
+        if (!empty($shopConfig->getId()))
+            $linkedBaskets = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->getByShopConfigId($shopConfig->getId()) ;
         AdminBuyNowShopConfigViewPage::builder()
             ->setShopConfig($shopConfig)
+            ->setLinkedBaskets($linkedBaskets)
             ->buildAndDisplay();
         exit(0);
     }

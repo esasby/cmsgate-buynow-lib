@@ -6,7 +6,7 @@ namespace esas\cmsgate\bridge;
 class ShopConfigBuyNow extends ShopConfig
 {
     private $name;
-    private $merchantId;
+
     private $orderCounter;
     /**
      * @var boolean
@@ -26,22 +26,6 @@ class ShopConfigBuyNow extends ShopConfig
      */
     public function setName($name) {
         $this->name = $name;
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getMerchantId() {
-        return $this->merchantId;
-    }
-
-    /**
-     * @param mixed $merchantId
-     * @return ShopConfigBuyNow
-     */
-    public function setMerchantId($merchantId) {
-        $this->merchantId = $merchantId;
         return $this;
     }
 

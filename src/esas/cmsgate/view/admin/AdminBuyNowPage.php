@@ -10,16 +10,15 @@ use esas\cmsgate\Registry;
 use esas\cmsgate\utils\htmlbuilder\Attributes as attribute;
 use esas\cmsgate\utils\htmlbuilder\Elements as element;
 use esas\cmsgate\utils\htmlbuilder\hro\pages\PageHRO;
+use esas\cmsgate\utils\htmlbuilder\page\DisplayErrorPage;
 use esas\cmsgate\utils\htmlbuilder\presets\BootstrapPreset as bootstrap;
 use esas\cmsgate\utils\htmlbuilder\presets\CssPreset as css;
 use esas\cmsgate\utils\htmlbuilder\presets\ScriptsPreset as script;
-use esas\cmsgate\utils\RedirectUtilsBridge;
 use esas\cmsgate\view\RedirectServiceBuyNow;
 
-abstract class AdminBuyNowPage extends PageHRO
+abstract class AdminBuyNowPage extends PageHRO implements DisplayErrorPage
 {
-    public function elementPageHead()
-    {
+    public function elementPageHead() {
         return element::head(
             element::title(
                 element::content($this->getPageTitle())
@@ -35,18 +34,15 @@ abstract class AdminBuyNowPage extends PageHRO
             script::elementScriptJquery3Min(),
             script::elementScriptPopper1Min(),
             script::elementScriptBootstrapMin(),
-            element::styleFile(dirname(__FILE__) . "/config.css"),
-            element::scriptFile(dirname(__FILE__) . "/copyToClipboard.js")
+            element::styleFile(dirname(__FILE__) . "/config.css")
         );
     }
 
-    public function getPageTitle()
-    {
+    public function getPageTitle() {
         return "BuyNow";
     }
 
-    public function elementPageBody()
-    {
+    public function elementPageBody() {
         return element::body(
             element::nav(
                 attribute::clazz("navbar navbar-expand-md navbar-dark fixed-top bg-dark"),
@@ -73,12 +69,16 @@ abstract class AdminBuyNowPage extends PageHRO
                             bootstrap::elementNavBarListItem(
                                 RedirectServiceBuyNow::basketList(),
                                 Translator::fromRegistry()->translate(AdminViewFieldsBuyNow::MENU_BASKETS),
-                                $this->getNavItemId() == RedirectServiceBuyNow::PATH_ADMIN_BASKETS)
+                                $this->getNavItemId() == RedirectServiceBuyNow::PATH_ADMIN_BASKETS),
+                            bootstrap::elementNavBarListItem(
+                                RedirectServiceBuyNow::orderList(),
+                                Translator::fromRegistry()->translate(AdminViewFieldsBuyNow::MENU_ORDERS),
+                                $this->getNavItemId() == RedirectServiceBuyNow::PATH_ADMIN_ORDERS)
                         )
                     ),
                     element::a(
                         attribute::clazz("btn btn-outline-warning my-2 my-sm-0 btn-md"),
-                        attribute::href(RedirectUtilsBridge::logout()),
+                        attribute::href(RedirectServiceBuyNow::fromRegistry()->logoutPage()),
                         Translator::fromRegistry()->translate(AdminViewFieldsBuyNow::LOGOUT)
                     )
                 )
@@ -86,9 +86,16 @@ abstract class AdminBuyNowPage extends PageHRO
             element::main(
                 attribute::role("main"),
                 attribute::clazz("container"),
-                $this->elementPageContent()
+                element::br(),
+                $this->elementMessageAndContent()
             )
         );
+    }
+
+    public function elementMessageAndContent() {
+        $messages = $this->elementMessages();
+        return ($messages != '' ? $messages . element::br() : "")
+            . ($this->isErrorPage() ? "" : $this->elementPageContent());
     }
 
     public abstract function getNavItemId();
@@ -100,5 +107,9 @@ abstract class AdminBuyNowPage extends PageHRO
             BridgeConnector::fromRegistry()->isSandbox() ? element::small(
                 attribute::style('color: #EC9941!important; vertical-align: sub'),
                 'test') : "";
+    }
+
+    public function isErrorPage() {
+        return Registry::getRegistry()->getMessenger()->hasErrorMessages();
     }
 }

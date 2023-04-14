@@ -4,8 +4,6 @@
 namespace esas\cmsgate\buynow;
 
 
-use esas\cmsgate\BridgeConnector;
-
 class BuyNowBasketItem
 {
     private $id;

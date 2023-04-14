@@ -4,9 +4,7 @@
 namespace esas\cmsgate\buynow;
 
 
-use esas\cmsgate\utils\CMSGateException;
 use esas\cmsgate\utils\Logger;
-use esas\cmsgate\utils\SessionUtils;
 
 abstract class BuyNowProductRepository
 {

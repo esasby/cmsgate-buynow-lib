@@ -6,10 +6,11 @@ namespace esas\cmsgate\bridge;
 
 class OrderDataItemBuyNow
 {
-    private $sku;
-    private $name;
-    private $count;
-    private $price;
+    public $sku;
+    public $productId;
+    public $name;
+    public $count;
+    public $price;
 
     /**
      * @return mixed
@@ -24,6 +25,22 @@ class OrderDataItemBuyNow
      */
     public function setSku($sku) {
         $this->sku = $sku;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getProductId() {
+        return $this->productId;
+    }
+
+    /**
+     * @param mixed $productId
+     * @return OrderDataItemBuyNow
+     */
+    public function setProductId($productId) {
+        $this->productId = $productId;
         return $this;
     }
 

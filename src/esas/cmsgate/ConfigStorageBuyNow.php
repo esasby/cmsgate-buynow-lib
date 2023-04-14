@@ -8,21 +8,20 @@
 
 namespace esas\cmsgate;
 
-use esas\cmsgate\buynow\BuyNowMerchant;
-use esas\cmsgate\protocol\RequestParamsBuyNow;
-use esas\cmsgate\utils\SessionUtilsBridge;
+
+use esas\cmsgate\bridge\Merchant;
 
 abstract class ConfigStorageBuyNow extends ConfigStorageBridge
 {
     /**
-     * @var BuyNowMerchant
+     * @var Merchant
      */
     protected $merchant;
 
     public function getConfig($key)
     {
         if ($this->merchant == null) {
-            $this->merchant = BridgeConnectorBuyNow::fromRegistry()->getBuyNowMerchantRepository()->getById(SessionUtilsBridge::getMerchantUUID());
+            $this->merchant = BridgeConnectorBuyNow::fromRegistry()->getMerchantService()->getMerchantObj();
         }
         if ($key == $this->getConfigFieldLogin())
             return $this->merchant->getLogin();

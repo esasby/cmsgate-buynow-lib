@@ -6,7 +6,6 @@ namespace esas\cmsgate\controllers\admin;
 
 use esas\cmsgate\BridgeConnector;
 use esas\cmsgate\BridgeConnectorBuyNow;
-use esas\cmsgate\buynow\BuyNowBasket;
 use esas\cmsgate\buynow\BuyNowBasketItem;
 use esas\cmsgate\controllers\Controller;
 use esas\cmsgate\protocol\RequestParamsBuyNow;
@@ -61,7 +60,7 @@ class AdminControllerBuyNowBasketItems extends Controller
     public function addOrUpdateBasketItem($basketId) {
         $basketItem = new BuyNowBasketItem();
         $basketItem
-            ->setId(RequestParamsBuyNow::getBasketId())
+            ->setId(RequestParamsBuyNow::getBasketItemId())
             ->setBasketId($basketId)
             ->setProductId(RequestParamsBuyNow::getProductId())
             ->setCount(RequestParamsBuyNow::getBasketItemProductCount())

@@ -2,21 +2,26 @@
 
 namespace esas\cmsgate\wrappers;
 
+use esas\cmsgate\bridge\OrderCache;
+use esas\cmsgate\bridge\OrderDataBuyNow;
 use esas\cmsgate\OrderStatus;
-use esas\cmsgate\protocol\RequestParamsBuyNow;
-use esas\cmsgate\utils\StringUtils;
-use Throwable;
 
 class OrderWrapperBuyNow extends OrderWrapperCached
 {
     protected $products;
 
     /**
-     * @param $order
+     * @var OrderDataBuyNow
+     */
+    protected $orderData;
+
+    /**
+     * @param $orderCache OrderCache
      */
     public function __construct($orderCache)
     {
         parent::__construct($orderCache);
+        $this->orderData = $orderCache->getOrderData();
     }
 
     /**
@@ -26,7 +31,7 @@ class OrderWrapperBuyNow extends OrderWrapperCached
      */
     public function getOrderIdUnsafe()
     {
-        return $this->orderCache->getUuid();
+        return $this->orderData->getOrderId();
     }
 
     /**
@@ -35,7 +40,7 @@ class OrderWrapperBuyNow extends OrderWrapperCached
      */
     public function getFullNameUnsafe()
     {
-        return $this->orderCache->getOrderData()[RequestParamsBuyNow::CUSTOMER_FIO];
+        return $this->orderData->getCustomerFIO();
     }
 
     /**
@@ -45,7 +50,7 @@ class OrderWrapperBuyNow extends OrderWrapperCached
      */
     public function getMobilePhoneUnsafe()
     {
-        return $this->orderCache->getOrderData()[RequestParamsBuyNow::CUSTOMER_PHONE];
+        return $this->orderData->getCustomerPhone();
     }
 
     /**
@@ -55,7 +60,7 @@ class OrderWrapperBuyNow extends OrderWrapperCached
      */
     public function getEmailUnsafe()
     {
-        return $this->orderCache->getOrderData()[RequestParamsBuyNow::CUSTOMER_EMAIL];
+        return $this->orderData->getCustomerEmail();
     }
 
     /**
@@ -73,7 +78,7 @@ class OrderWrapperBuyNow extends OrderWrapperCached
      */
     public function getAmountUnsafe()
     {
-        return $this->orderCache->getOrderData()[RequestParamsTilda::ORDER_AMOUNT];
+        return $this->orderData->getAmount();
     }
 
 
@@ -88,20 +93,19 @@ class OrderWrapperBuyNow extends OrderWrapperCached
      */
     public function getCurrencyUnsafe()
     {
-        return $this->orderCache->getOrderData()[RequestParamsTilda::ORDER_CURRENCY];
+        return $this->orderData->getCurrency();
     }
 
     /**
      * Массив товаров в заказе
-     * @return \esas\cmsgate\wrappers\OrderProductWrapperTilda[]
+     * @return \esas\cmsgate\wrappers\OrderProductWrapperBuyNow[]
      */
     public function getProductsUnsafe()
     {
         if ($this->products != null)
             return $this->products;
-        $items = json_decode($this->orderCache->getOrderData()[RequestParamsTilda::ORDER_ITEMS], true);
-        foreach ($items as $basketItem)
-            $this->products[] = new OrderProductWrapperTilda($basketItem);
+        foreach ($this->orderData->getItems() as $basketItem)
+            $this->products[] = new OrderProductWrapperBuyNow($basketItem);
         return $this->products;
     }
 

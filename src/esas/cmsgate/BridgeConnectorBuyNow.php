@@ -2,14 +2,13 @@
 namespace esas\cmsgate;
 
 use esas\cmsgate\bridge\OrderCacheBuyNowService;
+use esas\cmsgate\bridge\OrderCacheRepositoryBuyNow;
 use esas\cmsgate\bridge\ShopConfigBuyNowRepository;
 use esas\cmsgate\bridge\ShopConfigBuyNowRepositoryPDO;
 use esas\cmsgate\buynow\BuyNowBasketItemRepository;
 use esas\cmsgate\buynow\BuyNowBasketItemRepositoryPDO;
 use esas\cmsgate\buynow\BuyNowBasketRepository;
 use esas\cmsgate\buynow\BuyNowBasketRepositoryPDO;
-use esas\cmsgate\buynow\BuyNowMerchantRepository;
-use esas\cmsgate\buynow\BuyNowMerchantRepositoryPDO;
 use esas\cmsgate\buynow\BuyNowProductRepository;
 use esas\cmsgate\buynow\BuyNowProductRepositoryPDO;
 use esas\cmsgate\security\CmsAuthServiceBuyNow;
@@ -95,21 +94,7 @@ abstract class BridgeConnectorBuyNow extends BridgeConnectorPDO
         return new BuyNowBasketItemRepositoryPDO($this->getPDO());
     }
 
-    /**
-     * @var BuyNowMerchantRepository
-     */
-    protected $buyNowMerchantRepository;
-
-    /**
-     * @return BuyNowMerchantRepository
-     */
-    public function getBuyNowMerchantRepository() {
-        if ($this->buyNowMerchantRepository == null)
-            $this->buyNowMerchantRepository = $this->createBuyNowMerchantRepository();
-        return $this->buyNowMerchantRepository;
-    }
-
-    protected function createBuyNowMerchantRepository() {
-        return new BuyNowMerchantRepositoryPDO($this->getPDO());
+    protected function createOrderCacheRepository() {
+        return new OrderCacheRepositoryBuyNow($this->getPDO());
     }
 }

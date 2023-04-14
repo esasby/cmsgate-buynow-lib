@@ -5,12 +5,15 @@ namespace esas\cmsgate\view\admin;
 
 
 use esas\cmsgate\bridge\ShopConfigBuyNow;
+use esas\cmsgate\buynow\BuyNowBasket;
 use esas\cmsgate\lang\Translator;
 use esas\cmsgate\protocol\RequestParamsBuyNow;
 use esas\cmsgate\Registry;
+use esas\cmsgate\utils\htmlbuilder\Attributes as attribute;
 use esas\cmsgate\utils\htmlbuilder\Elements as element;
-use esas\cmsgate\utils\htmlbuilder\hro\HROFactory;
+use esas\cmsgate\utils\htmlbuilder\hro\HROFactoryCmsGate;
 use esas\cmsgate\utils\htmlbuilder\page\AddOrUpdatePage;
+use esas\cmsgate\utils\htmlbuilder\presets\TablePreset;
 use esas\cmsgate\utils\SessionUtilsBridge;
 use esas\cmsgate\view\admin\fields\ConfigFieldCheckbox;
 use esas\cmsgate\view\admin\fields\ConfigFieldText;
@@ -24,8 +27,14 @@ class AdminBuyNowShopConfigViewPage extends AdminBuyNowPage implements AddOrUpda
      * @var ShopConfigBuyNow
      */
     private $shopConfig;
+
     /**
-     * @var ConfigFormBridge
+     * @var BuyNowBasket[]
+     */
+    private $linkedBaskets;
+
+    /**
+     * @var ManagedFields
      */
     private $managedFields;
 
@@ -52,14 +61,22 @@ class AdminBuyNowShopConfigViewPage extends AdminBuyNowPage implements AddOrUpda
         return $this;
     }
 
+    /**
+     * @param BuyNowBasket[] $linkedBaskets
+     * @return AdminBuyNowShopConfigViewPage
+     */
+    public function setLinkedBaskets($linkedBaskets) {
+        $this->linkedBaskets = $linkedBaskets;
+        return $this;
+    }
+
     public function elementPageContent() {
-        return $this->elementMessages()
-            . element::br()
-            . $this->elementShopConfigEditForm();
+        return $this->elementShopConfigEditForm()
+            . $this->elementLinkedBasketsPanel();
     }
 
     public function elementShopConfigEditForm() {
-        $form = HROFactory::fromRegistry()->createFormBuilder()
+        $form = HROFactoryCmsGate::fromRegistry()->createFormBuilder()
             ->setId(SessionUtilsBridge::getShopConfigUUID() != null ? AdminViewFieldsBuyNow::SHOP_CONFIG_EDIT_FORM : AdminViewFieldsBuyNow::SHOP_CONFIG_ADD_FORM)
             ->setAction(RedirectServiceBuyNow::shopConfigList())
             ->setManagedFields($this->managedFields)
@@ -72,6 +89,43 @@ class AdminBuyNowShopConfigViewPage extends AdminBuyNowPage implements AddOrUpda
         return $form->build();
     }
 
+    protected function elementLinkedBasketsPanel() {
+        if ($this->linkedBaskets == null)
+            return '';
+        return element::br() . element::br() .
+            HROFactoryCmsGate::fromRegistry()->createDataListBuilder()
+                ->setMainLabel(AdminViewFieldsBuyNow::SHOP_CONFIG_LINKED_BASKET_LIST)
+                ->setTableHeaderColumns(['Id', 'Name', 'Active', 'Ask name', 'Ask phone', 'Ask email', 'Checkout counter', 'Created At'])
+                ->setTableBody($this->elementLinkedBasketsTableBody())
+                ->addFooterButtonAdd(RedirectServiceBuyNow::basketAdd())
+                ->build();
+    }
+
+    public function elementLinkedBasketsTableBody() {
+        $rows = '';
+        foreach ($this->linkedBaskets as $key => $value) {
+            $rows .= $this->elementLinkedBasketsTableRow($value, $key);
+        }
+        return element::tbody($rows);
+    }
+
+    /**
+     * @param BuyNowBasket $basket
+     */
+    public function elementLinkedBasketsTableRow($basket, $rowId) {
+        return element::tr(
+            attribute::clazz("position-relative"),
+            element::td(TablePreset::elementTdStretchedLink($basket->getId(), RedirectServiceBuyNow::basketEdit($basket->getId()))),
+            element::td($basket->getName()),
+            element::td(TablePreset::elementTdSwitch($basket->isActive())),
+            element::td(TablePreset::elementTdSwitch($basket->isAskFIO())),
+            element::td(TablePreset::elementTdSwitch($basket->isAskPhone())),
+            element::td(TablePreset::elementTdSwitch($basket->isAskEmail())),
+            element::td($basket->getCheckoutCount()),
+            element::td($basket->getCreatedAt())
+        );
+    }
+
     public function getNavItemId() {
         return RedirectServiceBuyNow::PATH_ADMIN_SHOP_CONFIGS;
     }
@@ -81,7 +135,7 @@ class AdminBuyNowShopConfigViewPage extends AdminBuyNowPage implements AddOrUpda
     }
 
     public function isEditMode() {
-        return $this->shopConfig != null && $this->shopConfig->getUuid() != null;
+        return $this->shopConfig != null && $this->shopConfig->getId() != null;
     }
 
     public static function builder() {

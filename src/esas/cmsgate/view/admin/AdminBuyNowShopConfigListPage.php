@@ -7,7 +7,7 @@ namespace esas\cmsgate\view\admin;
 use esas\cmsgate\bridge\ShopConfigBuyNow;
 use esas\cmsgate\utils\htmlbuilder\Attributes as attribute;
 use esas\cmsgate\utils\htmlbuilder\Elements as element;
-use esas\cmsgate\utils\htmlbuilder\hro\HROFactory;
+use esas\cmsgate\utils\htmlbuilder\hro\HROFactoryCmsGate;
 use esas\cmsgate\utils\htmlbuilder\presets\TablePreset;
 use esas\cmsgate\view\RedirectServiceBuyNow;
 
@@ -29,7 +29,7 @@ class AdminBuyNowShopConfigListPage extends AdminBuyNowPage
 
     public function elementPageContent() {
         return
-            HROFactory::fromRegistry()->createDataListBuilder()
+            HROFactoryCmsGate::fromRegistry()->createDataListBuilder()
                 ->setMainLabel(AdminViewFieldsBuyNow::SHOP_CONFIG_LIST)
                 ->setTableHeaderColumns(['Id', 'Name', 'Active', 'Order counter'])
                 ->setTableBody($this->elementShopConfigTableBody())

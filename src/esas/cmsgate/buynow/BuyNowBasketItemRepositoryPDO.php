@@ -45,7 +45,7 @@ class BuyNowBasketItemRepositoryPDO extends BuyNowBasketItemRepository
             while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
                 $uuid = $row[self::COLUMN_ID];
                 $this->logger->info("Updating basket item with id[" . $uuid . "]");
-                $sql = "UPDATE $this->table set active = :active, name = :name, description = :description, ask_phone = :ask_phone, ask_email = :ask_email, ask_fio = :ask_fio where id = :id";
+                $sql = "UPDATE $this->table set count = :count, max_count = :max_count where id = :id";
                 $stmt = $this->pdo->prepare($sql);
                 $stmt->execute([
                     'id' => $basketItem->getId(),
@@ -134,4 +134,7 @@ class BuyNowBasketItemRepositoryPDO extends BuyNowBasketItemRepository
         return $basketItem;
     }
 
+    public function getTableName() {
+        return $this->table;
+    }
 }

@@ -13,13 +13,15 @@ class RequestParamsBuyNow
     const BASKET_ASK_NAME = 'basketAskName';
     const BASKET_ASK_EMAIL = 'basketAskEmail';
     const BASKET_ASK_PHONE = 'basketAskPhone';
+    const BASKET_RETURN_URL = 'basketReturnUrl';
+    const CLIENT_UI_CSS = 'clientUICss';
     const BASKET_ITEM_ID = 'basketItemId';
     const BASKET_ITEM_PRODUCT_COUNT = 'basketItemProductsCount';
     const BASKET_ITEM_PRODUCT_MAX_COUNT = 'basketItemProductsMaxCount';
     const CUSTOMER_FIO = 'customerFio';
     const CUSTOMER_PHONE = 'customerPhone';
     const CUSTOMER_EMAIL = 'customerEmail';
-    const BASKET_ITEMS = 'basketItems';
+    const BASKET_PRODUCT_COUNT = 'basketProductCount';
     const PRODUCT_ID = 'productId';
     const PRODUCT_SKU = 'productSKU';
     const PRODUCT_NAME = 'productName';
@@ -27,6 +29,7 @@ class RequestParamsBuyNow
     const PRODUCT_ACTIVE = 'productActive';
     const PRODUCT_PRICE = 'productPrice';
     const PRODUCT_CURRENCY = 'productCurrency';
+    const PRODUCT_IMAGE = 'productImage';
     const SHOP_CONFIG_ID = 'shopConfigId';
     const SHOP_CONFIG_NAME = 'shopConfigName';
     const SHOP_CONFIG_ACTIVE = 'shopConfigActive';
@@ -56,12 +59,28 @@ class RequestParamsBuyNow
         return $_REQUEST[self::PRODUCT_PRICE];
     }
 
+    public static function getProductImage() {
+        return $_REQUEST[self::PRODUCT_IMAGE];
+    }
+
     public static function getProductCurrency() {
         return $_REQUEST[self::PRODUCT_CURRENCY];
     }
 
     public static function getBasketId() {
         return $_REQUEST[self::BASKET_ID];
+    }
+
+    public static function getBasketItemId() {
+        return $_REQUEST[self::BASKET_ITEM_ID];
+    }
+
+    public static function getBasketReturnUrl() {
+        return $_REQUEST[self::BASKET_RETURN_URL];
+    }
+
+    public static function getClientUICss() {
+        return $_REQUEST[self::CLIENT_UI_CSS];
     }
 
     public static function getBasketShopConfigId() {
@@ -116,8 +135,12 @@ class RequestParamsBuyNow
         return $_REQUEST[self::CUSTOMER_PHONE];
     }
 
-    public static function getBasketItems() {
-        return $_REQUEST[self::BASKET_ITEMS];
+    public static function getBasketProductCount($productId) {
+        return $_REQUEST[self::getBasketProductCountInputId($productId)];
+    }
+
+    public static function getBasketProductCountInputId($productId) {
+        return self::BASKET_PRODUCT_COUNT . '#' . $productId;
     }
 
     public static function getShopConfigId() {

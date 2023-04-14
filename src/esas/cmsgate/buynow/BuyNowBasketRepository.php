@@ -4,11 +4,10 @@
 namespace esas\cmsgate\buynow;
 
 
-use esas\cmsgate\utils\CMSGateException;
+use esas\cmsgate\dao\SingleTableRepository;
 use esas\cmsgate\utils\Logger;
-use esas\cmsgate\utils\SessionUtils;
 
-abstract class BuyNowBasketRepository
+abstract class BuyNowBasketRepository implements SingleTableRepository
 {
     /**
      * @var Logger
@@ -35,6 +34,12 @@ abstract class BuyNowBasketRepository
      * @return BuyNowBasket
      */
     public abstract function getById($basketId);
+
+    /**
+     * @param $productId string
+     * @return BuyNowBasket[]
+     */
+    public abstract function getByProductId($productId);
 
     /**
      * @param $shopConfigId string

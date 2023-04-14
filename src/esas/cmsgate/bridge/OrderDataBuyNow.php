@@ -6,18 +6,18 @@ namespace esas\cmsgate\bridge;
 
 class OrderDataBuyNow
 {
-    private $orderId;
-    private $basketId;
-    private $amount;
-    private $currency;
-    private $customerFIO;
-    private $customerPhone;
-    private $customerEmail;
+    public $orderId;
+    public $basketId;
+    public $amount;
+    public $currency;
+    public $customerFIO;
+    public $customerPhone;
+    public $customerEmail;
 
     /**
      * @var OrderDataItemBuyNow[]
      */
-    private $items;
+    public $items;
 
     /**
      * @return mixed

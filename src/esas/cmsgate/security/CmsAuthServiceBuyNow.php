@@ -22,7 +22,7 @@ class CmsAuthServiceBuyNow extends CmsAuthService
         $basket = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->getById(RequestParamsBuyNow::getBasketId());
         if (!$basket->isActive())
             throw new CMSGateException('Basket[' . RequestParamsBuyNow::getProductId() . '] is inactive');
-        $shopConfig = BridgeConnector::fromRegistry()->getShopConfigRepository()->getByUUID($basket->getShopConfigId());
+        $shopConfig = BridgeConnector::fromRegistry()->getShopConfigRepository()->getById($basket->getShopConfigId());
         return $shopConfig;
     }
 }

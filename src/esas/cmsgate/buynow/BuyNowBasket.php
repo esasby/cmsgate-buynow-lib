@@ -5,7 +5,6 @@ namespace esas\cmsgate\buynow;
 
 
 use esas\cmsgate\bridge\ShopConfigBuyNow;
-use esas\cmsgate\BridgeConnector;
 
 class BuyNowBasket
 {
@@ -33,6 +32,9 @@ class BuyNowBasket
      * @var boolean
      */
     private $askFIO = false;
+
+    private $clientUICss;
+    private $returnUrl;
     private $createdAt;
     private $checkoutCount;
     /**
@@ -82,8 +84,6 @@ class BuyNowBasket
         $this->shopConfig = $shopConfig;
         return $this;
     }
-
-
 
     /**
      * @return mixed
@@ -178,6 +178,38 @@ class BuyNowBasket
      */
     public function setAskFIO($askFIO) {
         $this->askFIO = $askFIO;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getClientUICss() {
+        return $this->clientUICss;
+    }
+
+    /**
+     * @param mixed $clientUICss
+     * @return BuyNowBasket
+     */
+    public function setClientUICss($clientUICss) {
+        $this->clientUICss = $clientUICss;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getReturnUrl() {
+        return $this->returnUrl;
+    }
+
+    /**
+     * @param mixed $returnUrl
+     * @return BuyNowBasket
+     */
+    public function setReturnUrl($returnUrl) {
+        $this->returnUrl = $returnUrl;
         return $this;
     }
 

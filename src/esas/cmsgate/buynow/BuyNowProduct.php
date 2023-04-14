@@ -4,8 +4,6 @@
 namespace esas\cmsgate\buynow;
 
 
-use esas\cmsgate\BridgeConnector;
-
 class BuyNowProduct
 {
     private $id;
@@ -19,6 +17,7 @@ class BuyNowProduct
      * @var boolean
      */
     private $active;
+    private $image;
     private $createdAt;
 
     /**
@@ -130,6 +129,22 @@ class BuyNowProduct
      */
     public function setCurrency($currency) {
         $this->currency = $currency;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getImage() {
+        return $this->image;
+    }
+
+    /**
+     * @param mixed $image
+     * @return BuyNowProduct
+     */
+    public function setImage($image) {
+        $this->image = $image;
         return $this;
     }
 
