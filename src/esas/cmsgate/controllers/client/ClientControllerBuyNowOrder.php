@@ -9,7 +9,7 @@ use esas\cmsgate\BridgeConnectorBuyNow;
 use esas\cmsgate\epos\controllers\ControllerEposCompletionPanel;
 use esas\cmsgate\epos\controllers\ControllerEposInvoiceAdd;
 use esas\cmsgate\Registry;
-use esas\cmsgate\utils\htmlbuilder\hro\HROFactory;
+use esas\cmsgate\utils\htmlbuilder\hro\HROFactoryCmsGate;
 use esas\cmsgate\utils\SessionUtilsBridge;
 use Exception;
 use Throwable;
@@ -30,7 +30,7 @@ class ClientControllerBuyNowOrder extends ClientControllerBuyNow
     public function process() {
         try {
 //            $order = BridgeConnectorBuyNow::fromRegistry()->getOrderCacheRepository()->getByUUID($this->orderId);
-            $completionPageBuilder = HROFactory::fromRegistry()->createClientOrderCompletionPage();
+            $completionPageBuilder = HROFactoryCmsGate::fromRegistry()->createClientOrderCompletionPage();
             BridgeConnectorBuyNow::fromRegistry()->getOrderCacheService()->loadSessionOrderCacheById($this->orderId);
             $orderWrapper = Registry::getRegistry()->getOrderWrapperForCurrentUser();
             $completionPageBuilder->setOrderWrapper($orderWrapper);
@@ -44,8 +44,7 @@ class ClientControllerBuyNowOrder extends ClientControllerBuyNow
             }
             $controller = new ControllerEposCompletionPanel();
             $completionPanel = $controller->process($orderWrapper);
-            $completionPanel = $completionPanel->__toString();
-            $completionPageBuilder->setElementCompletionPanel($completionPanel);
+            $completionPageBuilder->setElementCompletionPanel($completionPanel->build());
         } catch (Throwable $e) {
             Registry::getRegistry()->getMessenger()->addErrorMessage($e->getMessage());
         } catch (Exception $e) { // для совместимости с php 5
