@@ -98,6 +98,13 @@ class OrderWrapperBuyNow extends OrderWrapperCached
     }
 
     /**
+     * @return OrderDataBuyNow
+     */
+    public function getOrderData() {
+        return $this->orderData;
+    }
+
+    /**
      * Массив товаров в заказе
      * @return OrderProductWrapperBuyNow[]
      */
@@ -109,16 +116,6 @@ class OrderWrapperBuyNow extends OrderWrapperCached
             $this->products[] = new OrderProductWrapperBuyNow($basketItem);
         return $this->products;
     }
-
-    /**
-     * Текущий статус заказа в CMS
-     * @return mixed
-     */
-    public function getStatusUnsafe()
-    {
-        return OrderStatus::pending();
-    }
-    
 
     /**
      * Идентификатор клиента

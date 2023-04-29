@@ -38,4 +38,12 @@ return array(
     RequestParamsBuyNow::CUSTOMER_PHONE => 'Номер телефона',
     ClientViewFieldsBuyNow::BASKET_PAGE_HEADER => 'Оформление заказа',
     ClientViewFieldsBuyNow::BASKET_PAGE_HEADER_DETAILS => 'Для завершения покупки необходимо оформить заказа',
+    ClientViewFieldsBuyNow::HOME_PAGE_HEADER => 'BuyNow Epos',
+    ClientViewFieldsBuyNow::HOME_PAGE_HEADER_DETAILS => 'Принимайте QR-платежи просто',
+    ClientViewFieldsBuyNow::HOME_PAGE_BUY_NOW_DESCRIPTION => '<p><strong>BuyNow EPOS</strong> - простая интеграция Вашего сайта с платежной системой EPOS!</p>
+<ul>
+<li>Нет необходимости перехода на CMS системы с модулями электронной коммерции.</li> 
+<li>Подходит для создания заказов со страниц социальных сетях</li>
+</ul> 
+<p>BuyNow EPOS позволят самостоятельно сгенерировать <strong>уникальную ссылку</strong> для оплаты Вашего товара (или группы товаров). Данную ссылку, ввиде кнопки, необходимо просто добавить на сайт (страницу) с описанием товара или услуги. </p><p>При нажатии на ссылку клиент будет перенаправлен в корзину с товарами, где закончит оформление заказа и сможет выполнить его оплату. Платежная ссылка также может быть отправлена менеджером клиенту любым удобным способом (по email или в мессенджеры)</p><br/>',
 );

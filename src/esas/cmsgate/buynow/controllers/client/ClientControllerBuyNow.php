@@ -18,7 +18,7 @@ class ClientControllerBuyNow extends Controller
         } elseif (preg_match(self::PATTERN_ORDER_VIEW, $request, $pathParams)) {
             $controller = new ClientControllerBuyNowOrder($pathParams['orderId']);
         } else {
-            http_response_code(404);
+            $controller = new ClientControllerBuyHome();
         }
         $controller->process();
     }
