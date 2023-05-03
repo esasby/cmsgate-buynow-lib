@@ -103,9 +103,7 @@ class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements AddOrUpdatePa
         return
             $this->elementClientLinkPanel()
             . $this->elementMessages()
-            . element::br()
-            . $this->elementBasketEditForm()
-            . $this->elementBasketItemsPanel();
+            . $this->elementPageContent();
     }
 
 
@@ -155,7 +153,7 @@ class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements AddOrUpdatePa
     }
 
     protected function elementBasketItemsPanel() {
-        if ($this->basket->getId() == null)
+        if (!$this->isEditMode())
             return '';
         return element::br() .
             DataListHROFactory::findBuilder()
@@ -213,6 +211,6 @@ class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements AddOrUpdatePa
         return CopyToClipboardPanelHROFactory::findBuilder()
             ->setLabelId(AdminViewFieldsBuyNow::CLIENT_BASKET_LINK)
             ->setValue(RedirectServiceBuyNow::clientBasketView($this->basket->getId()))
-            ->build();
+            ->build() . element::br();
     }
 }

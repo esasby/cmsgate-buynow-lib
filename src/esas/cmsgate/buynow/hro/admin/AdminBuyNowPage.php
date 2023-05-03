@@ -96,7 +96,7 @@ abstract class AdminBuyNowPage extends PageHRO implements DisplayErrorPage
     public function elementMessageAndContent() {
         $messages = $this->elementMessages();
         return ($messages != '' ? $messages . element::br() : "")
-            . ($this->isErrorPage() ? "" : $this->elementPageContent());
+            . $this->elementPageContent();
     }
 
     public abstract function getNavItemId();

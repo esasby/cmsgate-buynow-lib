@@ -63,8 +63,8 @@ class AdminControllerBuyNowOrders extends Controller
     }
 
     public function checkOrderPermission($orderId) {
-        $order = BridgeConnectorBuyNow::fromRegistry()->getOrderCacheRepository()->getByUUID($orderId);
-        $shopConfig = BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->getByUUID($order->getShopConfigId());
+        $order = BridgeConnectorBuyNow::fromRegistry()->getOrderCacheRepository()->getByID($orderId);
+        $shopConfig = BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->getByID($order->getShopConfigId());
         if ($order == null || $shopConfig->getMerchantId() != SessionServiceBridge::fromRegistry()::getMerchantUUID())
             throw new CMSGateException('This order can not be managed by current merchant');
         return $order;

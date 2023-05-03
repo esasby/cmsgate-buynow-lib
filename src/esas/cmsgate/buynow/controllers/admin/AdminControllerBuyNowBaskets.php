@@ -70,17 +70,19 @@ class AdminControllerBuyNowBaskets extends Controller
             ->setAskEmail(RequestParamsBuyNow::getBasketAskEmail())
             ->setAskPhone(RequestParamsBuyNow::getBasketAskPhone())
             ->setReturnUrl(RequestParamsBuyNow::getBasketReturnUrl())
-            ->setClientUICss(RequestParamsBuyNow::getClientUICss())
-        ;
-        $basketViewPage = AdminBuyNowBasketViewPage::builder();
+            ->setClientUICss(RequestParamsBuyNow::getClientUICss());
+        $basketViewPage = $this->createBasketViewPage($basket);
         PageUtils::validateFormInputAndRenderOnError($basketViewPage);
         try {
             AdminControllerBuyNowShopConfigs::checkShopConfigPermission($basket->getShopConfigId());
             if ($basket->getId() != null) {
                 self::checkBasketPermission($basket->getId());
             }
-            BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->saveOrUpdate($basket);
-            RedirectServiceBuyNow::basketList(true);
+            $newBasketId = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->saveOrUpdate($basket);
+            if ($basket->getId() != null)
+                RedirectServiceBuyNow::basketList(true);
+            else
+                RedirectServiceBuyNow::basketEdit($newBasketId, true);
         } catch (Exception $e) {
             Registry::getRegistry()->getMessenger()->addErrorMessage($e->getMessage());
             $basketViewPage->render();
@@ -95,11 +97,15 @@ class AdminControllerBuyNowBaskets extends Controller
         exit(0);
     }
 
-    public function renderBasketViewPage($basket) {
-
-        AdminBuyNowBasketViewPage::builder()
+    public function createBasketViewPage($basket) {
+        return AdminBuyNowBasketViewPage::builder()
             ->setBasket($basket)
-            ->setBasketItems(self::getBasketItemList($basket))
+            ->setBasketItems(self::getBasketItemList($basket));
+    }
+
+    public function renderBasketViewPage($basket) {
+        $this
+            ->createBasketViewPage($basket)
             ->buildAndDisplay();
         exit(0);
     }
