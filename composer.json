@@ -19,7 +19,7 @@
     "php": ">= 5.6.0",
     "ext-curl": "*",
     "esas/cmsgate-core": "~v2.1.0",
-    "esas/cmsgate-bridge-lib": "~v2.0.0",
+    "esas/cmsgate-bridge-lib": "~v2.1.0",
     "symfony/serializer": "~5.4.21"
   },
   "autoload": {
