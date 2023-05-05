@@ -38,8 +38,8 @@ class CmsConnectorByNow extends CmsConnectorBridge
         return new CmsConnectorDescriptor(
             "cmsgate-buynow-lib",
             new VersionDescriptor(
-                "v2.0.0",
-                "2023-04-27"
+                "v2.1.3",
+                "2023-05-05"
             ),
             "Cmsgate BuyNow connector",
             "https://github.com/esasby/cmsgate-buynow-lib",

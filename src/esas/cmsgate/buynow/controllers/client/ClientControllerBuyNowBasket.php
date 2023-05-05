@@ -4,6 +4,7 @@
 namespace esas\cmsgate\buynow\controllers\client;
 
 
+use esas\cmsgate\bridge\service\RecaptchaService;
 use esas\cmsgate\buynow\service\OrderCacheBuyNowService;
 use esas\cmsgate\buynow\dao\OrderDataBuyNow;
 use esas\cmsgate\buynow\dao\OrderDataItemBuyNow;
@@ -36,6 +37,7 @@ class ClientControllerBuyNowBasket extends ClientControllerBuyNow
                 ->addCssLink($this->getClientUICssLink($basket));
             if (RequestUtils::isMethodPost()) { // adding or updating
                 PageUtils::validateFormInputAndRenderOnError($basketViewPage);
+                RecaptchaService::fromRegistry()->validateRequest();
                 $this->orderConfirm();
             } else {
                 $basketViewPage->render();

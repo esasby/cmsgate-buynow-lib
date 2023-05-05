@@ -3,6 +3,7 @@
 
 namespace esas\cmsgate\buynow\hro\client;
 
+use esas\cmsgate\bridge\properties\RecaptchaProperties;
 use esas\cmsgate\buynow\BridgeConnectorBuyNow;
 use esas\cmsgate\buynow\dao\BasketBuyNow;
 use esas\cmsgate\buynow\dao\BasketItemBuyNow;
@@ -14,10 +15,11 @@ use esas\cmsgate\hro\forms\FormFieldTextHROFactory;
 use esas\cmsgate\hro\shop\BasketItemHROFactory;
 use esas\cmsgate\hro\shop\BasketItemListHROFactory;
 use esas\cmsgate\lang\Translator;
+use esas\cmsgate\Registry;
 use esas\cmsgate\utils\htmlbuilder\Attributes as attribute;
 use esas\cmsgate\utils\htmlbuilder\Elements as element;
 use esas\cmsgate\utils\htmlbuilder\presets\BootstrapPreset as bootstrap;
-use esas\cmsgate\utils\htmlbuilder\presets\ScriptsPreset;
+use esas\cmsgate\utils\htmlbuilder\presets\ScriptsPreset as scripts;
 use esas\cmsgate\view\admin\fields\ConfigFieldText;
 use esas\cmsgate\view\admin\ManagedFields;
 use esas\cmsgate\view\admin\validators\ValidatorEmail;
@@ -62,6 +64,13 @@ class ClientBuyNowBasketViewHRO_v1 extends ClientBuyNowPage implements ClientBuy
         return new ClientBuyNowBasketViewHRO_v1();
     }
 
+    public function elementPageHead() {
+        return
+            parent::elementPageHead()
+                ->add(scripts::elementScriptGoogleRecaptcha())
+                ->add(scripts::elementScriptGoogleRecaptchaSubmit());
+    }
+
     public function getElementSectionHeaderTitle() {
         return Translator::fromRegistry()->translate(ClientViewFieldsBuyNow::BASKET_PAGE_HEADER);
     }
@@ -75,6 +84,7 @@ class ClientBuyNowBasketViewHRO_v1 extends ClientBuyNowPage implements ClientBuy
             $this->elementBasketDescription() .
             element::form(
                 attribute::action(RedirectServiceBuyNow::clientBasketConfirm($this->basket->getId())),
+                attribute::clazz("google-recaptcha-form"),
                 attribute::method("post"),
                 attribute::enctype("multipart/form-data"),
                 bootstrap::elementInputHidden(RequestParamsBuyNow::BASKET_ID, $this->basket->getId()),
@@ -97,6 +107,8 @@ class ClientBuyNowBasketViewHRO_v1 extends ClientBuyNowPage implements ClientBuy
     }
 
     protected function elementFormBody() {
+        /** @var RecaptchaProperties $properties */
+        $properties = Registry::getRegistry()->getProperties();
         return
             bootstrap::elementRowExt("gy-3",
                 bootstrap::elementDiv("col-md-8",
@@ -125,10 +137,17 @@ class ClientBuyNowBasketViewHRO_v1 extends ClientBuyNowPage implements ClientBuy
                     )
                 ),
                 bootstrap::elementDiv("col-md-2",
-                    bootstrap::elementButtonSubmit(Translator::fromRegistry()->translate(ClientViewFieldsBuyNow::PLACE_ORDER), 'btn-success col-12')
+                    element::button(
+                        attribute::type('submit'),
+                        attribute::clazz('btn me-1 btn-success col-12 g-recaptcha'),
+                        attribute::data_sitekey($properties->getRecaptchaPublicKey()),
+                        attribute::data_action("submit"),
+                        attribute::data_callback("onSubmit"),
+                        element::content(Translator::fromRegistry()->translate(ClientViewFieldsBuyNow::PLACE_ORDER))
+                    )
                 ))
             . element::br()
-            . ScriptsPreset::elementScriptBasketTotal();
+            . scripts::elementScriptBasketTotal();
     }
 
     public function calcTotal() {

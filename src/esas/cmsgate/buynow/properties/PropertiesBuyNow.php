@@ -4,13 +4,19 @@
 namespace esas\cmsgate\buynow\properties;
 
 
+use esas\cmsgate\bridge\properties\RecaptchaProperties;
 use esas\cmsgate\properties\LocaleProperties;
 use esas\cmsgate\properties\PDOConnectionProperties;
 use esas\cmsgate\properties\SandboxProperties;
 use esas\cmsgate\properties\ViewProperties;
 use esas\cmsgate\Registry;
 
-abstract class PropertiesBuyNow implements PDOConnectionProperties, SandboxProperties, ViewProperties, LocaleProperties
+abstract class PropertiesBuyNow implements
+    PDOConnectionProperties,
+    SandboxProperties,
+    ViewProperties,
+    LocaleProperties,
+    RecaptchaProperties
 {
     /**
      * Для удобства работы в IDE и подсветки синтаксиса.
