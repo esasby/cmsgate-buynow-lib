@@ -96,7 +96,8 @@ class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements AddOrUpdatePa
             $this->basketFields->getField(RequestParamsBuyNow::BASKET_RETURN_URL)->setValue($basket->getReturnUrl());
             $this->basketFields->getField(RequestParamsBuyNow::CLIENT_UI_CSS)->setValue($basket->getClientUICss());
             $this->basketFields->getField(RequestParamsBuyNow::BASKET_MAX_PAID_COUNT)->setValue($basket->getPaidMaxCount());
-            $this->basketFields->getField(RequestParamsBuyNow::BASKET_EXPIRES_AT)->setValue($basket->getExpiresAt()->format('Y-m-d H:i'));
+            if (!empty($basket->getExpiresAt()))
+                $this->basketFields->getField(RequestParamsBuyNow::BASKET_EXPIRES_AT)->setValue($basket->getExpiresAt()->format('Y-m-d H:i'));
         }
         return $this;
     }
