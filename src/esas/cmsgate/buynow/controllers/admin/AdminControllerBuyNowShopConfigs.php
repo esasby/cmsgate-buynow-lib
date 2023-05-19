@@ -4,9 +4,11 @@
 namespace esas\cmsgate\buynow\controllers\admin;
 
 
+use esas\cmsgate\bridge\dao\ShopConfigRepository;
+use esas\cmsgate\bridge\service\MerchantService;
+use esas\cmsgate\buynow\dao\BasketBuyNowRepository;
 use esas\cmsgate\buynow\dao\ShopConfigBuyNow;
-use esas\cmsgate\bridge\BridgeConnector;
-use esas\cmsgate\buynow\BridgeConnectorBuyNow;
+
 use esas\cmsgate\buynow\hro\admin\AdminBuyNowShopConfigListPage;
 use esas\cmsgate\buynow\hro\admin\AdminBuyNowShopConfigViewPage;
 use esas\cmsgate\buynow\protocol\RequestParamsBuyNow;
@@ -28,7 +30,7 @@ class AdminControllerBuyNowShopConfigs extends Controller
     const PATTERN_SHOP_CONFIGS_DELETE = '/.*\/shop_configs\/(?<shopConfigId>.+)\/delete$/';
 
     public function process() {
-        BridgeConnector::fromRegistry()->getMerchantService()->checkAuth(true);
+        MerchantService::fromRegistry()->checkAuth(true);
         try {
             $request = RequestUtils::getRequestPath();
             if (StringUtils::endsWith($request, RedirectServiceBuyNow::PATH_ADMIN_SHOP_CONFIGS)) {
@@ -41,7 +43,7 @@ class AdminControllerBuyNowShopConfigs extends Controller
                 $this->renderShopConfigViewPage($shopConfig);
             } elseif (preg_match(self::PATTERN_SHOP_CONFIGS_DELETE, $request, $pathParams)) {
                 $shopConfig = $this->checkShopConfigPermission($pathParams['shopConfigId']);
-                BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->deleteById($shopConfig->getUuid());
+                ShopConfigRepository::fromRegistry()->deleteById($shopConfig->getUuid());
                 $this->renderShopConfigListPage();
             } elseif (preg_match(self::PATTERN_SHOP_CONFIGS_EDIT, $request, $pathParams)) {
                 $shopConfig = $this->checkShopConfigPermission($pathParams['shopConfigId']);
@@ -55,7 +57,6 @@ class AdminControllerBuyNowShopConfigs extends Controller
         } catch (Exception $e) { // для совместимости с php 5
             Registry::getRegistry()->getMessenger()->addErrorMessage($e->getMessage());
         }
-//        BridgeConnector::fromRegistry()->getAdminConfigPage()->render();
     }
 
     public function addOrUpdateShopConfig() {
@@ -70,10 +71,10 @@ class AdminControllerBuyNowShopConfigs extends Controller
                 ->setUuid(RequestParamsBuyNow::getShopConfigId())
                 ->setName(RequestParamsBuyNow::getShopConfigName())
                 ->setActive(RequestParamsBuyNow::getShopConfigActive())
-                ->setMerchantId(SessionServiceBridge::fromRegistry()::getMerchantUUID())
+                ->setMerchantId(SessionServiceBridge::fromRegistry()->getMerchantUUID())
                 ->setConfigArray(FormUtils::extractInputsFromRequest($shopConfigViewPage->getFormFields(), [RequestParamsBuyNow::SHOP_CONFIG_NAME, RequestParamsBuyNow::SHOP_CONFIG_ACTIVE]));
-            BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->saveOrUpdate($shopConfig);
-            RedirectServiceBuyNow::shopConfigList(true);
+            ShopConfigRepository::fromRegistry()->saveOrUpdate($shopConfig);
+            RedirectServiceBuyNow::fromRegistry()->shopConfigList(true);
         } catch (Exception $e) {
             Registry::getRegistry()->getMessenger()->addErrorMessage($e->getMessage());
             $shopConfigViewPage->render();
@@ -83,7 +84,7 @@ class AdminControllerBuyNowShopConfigs extends Controller
 
     public function renderShopConfigListPage() {
         AdminBuyNowShopConfigListPage::builder()
-            ->setShopConfigList(BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->getByMerchantId(SessionServiceBridge::fromRegistry()::getMerchantUUID()))
+            ->setShopConfigList(ShopConfigRepository::fromRegistry()->getByMerchantId(SessionServiceBridge::fromRegistry()->getMerchantUUID()))
             ->buildAndDisplay();
         exit(0);
     }
@@ -94,7 +95,7 @@ class AdminControllerBuyNowShopConfigs extends Controller
     public function renderShopConfigViewPage($shopConfig) {
         $linkedBaskets = null;
         if (!empty($shopConfig->getId()))
-            $linkedBaskets = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->getByShopConfigId($shopConfig->getId()) ;
+            $linkedBaskets = BasketBuyNowRepository::fromRegistry()->getByShopConfigId($shopConfig->getId()) ;
         AdminBuyNowShopConfigViewPage::builder()
             ->setShopConfig($shopConfig)
             ->setLinkedBaskets($linkedBaskets)
@@ -109,11 +110,11 @@ class AdminControllerBuyNowShopConfigs extends Controller
      */
     public static function checkShopConfigPermission($shopConfigId) {
         /** @var ShopConfigBuyNow $shopConfig */
-        $shopConfig = BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->getByUUID($shopConfigId);
-        if ($shopConfig == null || $shopConfig->getMerchantId() != SessionServiceBridge::fromRegistry()::getMerchantUUID())
+        $shopConfig = ShopConfigRepository::fromRegistry()->getById($shopConfigId);
+        if ($shopConfig == null || $shopConfig->getMerchantId() != SessionServiceBridge::fromRegistry()->getMerchantUUID())
             throw new CMSGateException('This shop config can not be managed by current merchant');
-        SessionServiceBridge::fromRegistry()::setShopConfigUUID($shopConfig->getUuid());
-        SessionServiceBridge::fromRegistry()::setShopConfigObj($shopConfig);
+        SessionServiceBridge::fromRegistry()->setShopConfigUUID($shopConfig->getId());
+        SessionServiceBridge::fromRegistry()->setShopConfigObj($shopConfig);
         return $shopConfig;
     }
 }

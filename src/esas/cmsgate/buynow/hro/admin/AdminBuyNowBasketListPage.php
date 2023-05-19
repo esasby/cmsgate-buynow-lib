@@ -4,7 +4,8 @@
 namespace esas\cmsgate\buynow\hro\admin;
 
 
-use esas\cmsgate\buynow\BridgeConnectorBuyNow;
+use esas\cmsgate\bridge\dao\ShopConfigRepository;
+
 use esas\cmsgate\buynow\dao\BasketBuyNow;
 use esas\cmsgate\buynow\view\admin\AdminViewFieldsBuyNow;
 use esas\cmsgate\buynow\service\RedirectServiceBuyNow;
@@ -32,7 +33,7 @@ class AdminBuyNowBasketListPage extends AdminBuyNowPage
                 ->setMainLabel(AdminViewFieldsBuyNow::BASKET_LIST)
                 ->setTableHeaderColumns(['Id', 'Shop config', 'Name', 'Active', 'Ask name', 'Ask phone', 'Ask email', 'Checkout counter', 'Created At'])
                 ->setTableBody($this->elementBasketTableBody())
-                ->addFooterButtonAdd(RedirectServiceBuyNow::basketAdd())
+                ->addFooterButtonAdd(RedirectServiceBuyNow::fromRegistry()->basketAdd())
                 ->build();
     }
 
@@ -48,10 +49,10 @@ class AdminBuyNowBasketListPage extends AdminBuyNowPage
      * @param BasketBuyNow $basket
      */
     public function elementBasketTableRow($basket, $rowId) {
-        $shopConfig = BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->getById($basket->getShopConfigId());
+        $shopConfig = ShopConfigRepository::fromRegistry()->getById($basket->getShopConfigId());
         return element::tr(
             attribute::clazz("position-relative"),
-            element::td(TablePreset::elementTdStretchedLink($basket->getId(), RedirectServiceBuyNow::basketEdit($basket->getId()))),
+            element::td(TablePreset::elementTdStretchedLink($basket->getId(), RedirectServiceBuyNow::fromRegistry()->basketEdit($basket->getId()))),
             element::td($shopConfig->getName()), //todo name
             element::td($basket->getName()),
             element::td(TablePreset::elementTdSwitch($basket->isActive())),

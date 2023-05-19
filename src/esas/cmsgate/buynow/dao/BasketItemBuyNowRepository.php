@@ -1,23 +1,18 @@
 <?php
 namespace esas\cmsgate\buynow\dao;
 
+use esas\cmsgate\dao\Repository;
 use esas\cmsgate\dao\SingleTableRepository;
+use esas\cmsgate\Registry;
 use esas\cmsgate\utils\Logger;
 
-abstract class BasketItemBuyNowRepository implements SingleTableRepository
+abstract class BasketItemBuyNowRepository extends Repository implements SingleTableRepository
 {
     /**
-     * @var Logger
+     * @inheritDoc
      */
-    protected $logger;
-
-    /**
-     * ProductBuyNowRepository constructor.
-     */
-    public function __construct()
-    {
-        $this->logger = Logger::getLogger(get_class($this));
-
+    public static function fromRegistry() {
+        return Registry::getRegistry()->getService(BasketItemBuyNowRepository::class);
     }
 
     /**

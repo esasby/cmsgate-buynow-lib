@@ -4,21 +4,24 @@
 namespace esas\cmsgate\buynow\controllers\admin;
 
 
-use esas\cmsgate\bridge\BridgeConnector;
+use DateTime;
+use esas\cmsgate\bridge\service\MerchantService;
 use esas\cmsgate\bridge\service\SessionServiceBridge;
-use esas\cmsgate\buynow\BridgeConnectorBuyNow;
+
 use esas\cmsgate\buynow\dao\BasketBuyNow;
+use esas\cmsgate\buynow\dao\BasketBuyNowRepository;
+use esas\cmsgate\buynow\dao\BasketItemBuyNowRepository;
 use esas\cmsgate\buynow\hro\admin\AdminBuyNowBasketListPage;
 use esas\cmsgate\buynow\hro\admin\AdminBuyNowBasketViewPage;
 use esas\cmsgate\buynow\protocol\RequestParamsBuyNow;
+use esas\cmsgate\buynow\service\BasketServiceBuyNow;
 use esas\cmsgate\buynow\service\RedirectServiceBuyNow;
 use esas\cmsgate\controllers\Controller;
 use esas\cmsgate\Registry;
-use esas\cmsgate\utils\CMSGateException;
 use esas\cmsgate\utils\htmlbuilder\page\PageUtils;
-use esas\cmsgate\utils\Logger;
 use esas\cmsgate\utils\RequestUtils;
 use esas\cmsgate\utils\StringUtils;
+use esas\cmsgate\view\admin\validators\ValidatorDateTimeLocal;
 use Exception;
 use Throwable;
 
@@ -28,7 +31,7 @@ class AdminControllerBuyNowBaskets extends Controller
     const PATTERN_BASKET_DELETE = '/.*\/baskets\/(?<basketId>.+)\/delete$/';
 
     public function process() {
-        BridgeConnector::fromRegistry()->getMerchantService()->checkAuth(true);
+        MerchantService::fromRegistry()->checkAuth(true);
         try {
             $request = RequestUtils::getRequestPath();
             if (StringUtils::endsWith($request, RedirectServiceBuyNow::PATH_ADMIN_BASKETS)) {
@@ -40,12 +43,12 @@ class AdminControllerBuyNowBaskets extends Controller
                 $basket = new BasketBuyNow();
                 $this->renderBasketViewPage($basket);
             } elseif (preg_match(self::PATTERN_BASKET_DELETE, $request, $pathParams)) {
-                $basket = $this->checkBasketPermission($pathParams['basketId']);
-                BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketItemRepository()->deleteByBasketId($basket->getId());
-                BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->deleteById($basket->getId());
-                RedirectServiceBuyNow::basketList(true);
+                $basket = BasketServiceBuyNow::fromRegistry()->checkAdminPermission($pathParams['basketId']);
+                BasketItemBuyNowRepository::fromRegistry()->deleteByBasketId($basket->getId());
+                BasketBuyNowRepository::fromRegistry()->deleteById($basket->getId());
+                RedirectServiceBuyNow::fromRegistry()->basketList(true);
             } elseif (preg_match(self::PATTERN_BASKET_EDIT, $request, $pathParams)) {
-                $basket = $this->checkBasketPermission($pathParams['basketId']);
+                $basket = BasketServiceBuyNow::fromRegistry()->checkAdminPermission($pathParams['basketId']);
                 $this->renderBasketViewPage($basket);
             } else {
                 $this->renderBasketListPage();
@@ -70,19 +73,22 @@ class AdminControllerBuyNowBaskets extends Controller
             ->setAskEmail(RequestParamsBuyNow::getBasketAskEmail())
             ->setAskPhone(RequestParamsBuyNow::getBasketAskPhone())
             ->setReturnUrl(RequestParamsBuyNow::getBasketReturnUrl())
-            ->setClientUICss(RequestParamsBuyNow::getClientUICss());
+            ->setClientUICss(RequestParamsBuyNow::getClientUICss())
+            ->setPaidMaxCount(RequestParamsBuyNow::getBasketMaxPaidCount())
+            ->setExpiresAt(DateTime::createFromFormat(ValidatorDateTimeLocal::DATE_TIME_LOCALE_FORMAT, RequestParamsBuyNow::getBasketExpiresAt()))
+        ;
         $basketViewPage = $this->createBasketViewPage($basket);
         PageUtils::validateFormInputAndRenderOnError($basketViewPage);
         try {
             AdminControllerBuyNowShopConfigs::checkShopConfigPermission($basket->getShopConfigId());
             if ($basket->getId() != null) {
-                self::checkBasketPermission($basket->getId());
+                BasketServiceBuyNow::fromRegistry()->checkAdminPermission($basket->getId());
             }
-            $newBasketId = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->saveOrUpdate($basket);
+            $newBasketId = BasketBuyNowRepository::fromRegistry()->saveOrUpdate($basket);
             if ($basket->getId() != null)
-                RedirectServiceBuyNow::basketList(true);
+                RedirectServiceBuyNow::fromRegistry()->basketList(true);
             else
-                RedirectServiceBuyNow::basketEdit($newBasketId, true);
+                RedirectServiceBuyNow::fromRegistry()->basketEdit($newBasketId, true);
         } catch (Exception $e) {
             Registry::getRegistry()->getMessenger()->addErrorMessage($e->getMessage());
             $basketViewPage->render();
@@ -92,7 +98,7 @@ class AdminControllerBuyNowBaskets extends Controller
 
     public function renderBasketListPage() {
         AdminBuyNowBasketListPage::builder()
-            ->setBasketList(BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->getByMerchantId(SessionServiceBridge::fromRegistry()::getMerchantUUID()))
+            ->setBasketList(BasketBuyNowRepository::fromRegistry()->getByMerchantId(SessionServiceBridge::fromRegistry()->getMerchantUUID()))
             ->buildAndDisplay();
         exit(0);
     }
@@ -100,7 +106,7 @@ class AdminControllerBuyNowBaskets extends Controller
     public function createBasketViewPage($basket) {
         return AdminBuyNowBasketViewPage::builder()
             ->setBasket($basket)
-            ->setBasketItems(self::getBasketItemList($basket));
+            ->setBasketItems(BasketServiceBuyNow::fromRegistry()->getBasketItemList($basket));
     }
 
     public function renderBasketViewPage($basket) {
@@ -109,30 +115,4 @@ class AdminControllerBuyNowBaskets extends Controller
             ->buildAndDisplay();
         exit(0);
     }
-
-    public static function getBasketItemList($basket) {
-        $basketItems = array();
-        if ($basket->getId() != null) {
-            foreach (BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketItemRepository()->getByBasketId($basket->getId()) as $item) {
-                try {
-                    AdminControllerBuyNowProducts::checkProductPermission($item->getProductId());
-                    $basketItems[] = $item;
-                } catch (CMSGateException $e) {
-                    Logger::getLogger('BasketsController')->error("Error: ", $e);
-                    BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketItemRepository()->deleteById($item->getId());
-                    Logger::getLogger('BasketsController')->info('Basket item[' . $item->getId() . '] was deleted');
-
-                }
-            }
-        }
-        return $basketItems;
-    }
-
-    public static function checkBasketPermission($basketId) {
-        $basket = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->getById($basketId);
-        if ($basket == null || $basket->getShopConfig()->getMerchantId() != SessionServiceBridge::fromRegistry()::getMerchantUUID())
-            throw new CMSGateException('This basket can not be managed by current merchant');
-        return $basket;
-    }
-
 }

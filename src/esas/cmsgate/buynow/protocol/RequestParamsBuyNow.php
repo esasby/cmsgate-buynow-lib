@@ -14,6 +14,8 @@ class RequestParamsBuyNow
     const BASKET_ASK_EMAIL = 'basketAskEmail';
     const BASKET_ASK_PHONE = 'basketAskPhone';
     const BASKET_RETURN_URL = 'basketReturnUrl';
+    const BASKET_MAX_PAID_COUNT = 'basketMaxCheckoutCount';
+    const BASKET_EXPIRES_AT = 'basketExpiresAt';
     const CLIENT_UI_CSS = 'clientUICss';
     const BASKET_ITEM_ID = 'basketItemId';
     const BASKET_ITEM_PRODUCT_COUNT = 'basketItemProductsCount';
@@ -113,6 +115,14 @@ class RequestParamsBuyNow
 
     public static function getBasketItemProductCount() {
         return $_REQUEST[self::BASKET_ITEM_PRODUCT_COUNT];
+    }
+
+    public static function getBasketMaxPaidCount() {
+        return $_REQUEST[self::BASKET_MAX_PAID_COUNT];
+    }
+
+    public static function getBasketExpiresAt() {
+        return $_REQUEST[self::BASKET_EXPIRES_AT];
     }
 
     public static function getBasketItemProductMaxCount() {

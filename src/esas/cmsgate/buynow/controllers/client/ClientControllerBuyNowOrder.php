@@ -4,8 +4,10 @@
 namespace esas\cmsgate\buynow\controllers\client;
 
 
+use esas\cmsgate\bridge\service\OrderService;
+use esas\cmsgate\buynow\dao\BasketBuyNowRepository;
 use esas\cmsgate\buynow\dao\OrderDataBuyNow;
-use esas\cmsgate\buynow\BridgeConnectorBuyNow;
+
 use esas\cmsgate\epos\controllers\ControllerEposCompletionPanel;
 use esas\cmsgate\epos\controllers\ControllerEposInvoiceAdd;
 use esas\cmsgate\hro\pages\ClientOrderCompletionPageHROFactory;
@@ -30,12 +32,10 @@ class ClientControllerBuyNowOrder extends ClientControllerBuyNow
     public function process() {
         $completionPageBuilder = ClientOrderCompletionPageHROFactory::findBuilder();
         try {
-            BridgeConnectorBuyNow::fromRegistry()->getOrderCacheService()->loadSessionOrderCacheById($this->orderId);
+            OrderService::fromRegistry()->loadSessionOrderById($this->orderId);
             $orderWrapper = Registry::getRegistry()->getOrderWrapperForCurrentUser();
             $completionPageBuilder->setOrderWrapper($orderWrapper);
-            /** @var OrderDataBuyNow $orderData */
-            $orderData = SessionServiceBridge::fromRegistry()::getOrderCacheObj()->getOrderData();
-            $basket = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->getById($orderData->getBasketId());
+            $basket = BasketBuyNowRepository::fromRegistry()->getById(SessionServiceBridge::fromRegistry()->getOrderObj()->getBasketId());
             $completionPageBuilder->addCssLink($this->getClientUICssLink($basket));
             if ($orderWrapper->getExtId() == null || $orderWrapper->getExtId() == '') {
                 $controller = new ControllerEposInvoiceAdd();

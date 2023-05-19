@@ -31,7 +31,7 @@ class AdminBuyNowProductListPage extends AdminBuyNowPage
                 ->setMainLabel(AdminViewFieldsBuyNow::PRODUCT_LIST)
                 ->setTableHeaderColumns(['Id', 'SKU', 'Name', 'Description', 'Image', 'Active', 'Price', 'Currency', 'Created At'])
                 ->setTableBody($this->elementProductTableBody())
-                ->addFooterButtonAdd(RedirectServiceBuyNow::productAdd())
+                ->addFooterButtonAdd(RedirectServiceBuyNow::fromRegistry()->productAdd())
                 ->build();
     }
 
@@ -49,7 +49,7 @@ class AdminBuyNowProductListPage extends AdminBuyNowPage
     public function elementProductTableRow($product, $rowId) {
         return element::tr(
             attribute::clazz("position-relative"),
-            element::td(TablePreset::elementTdStretchedLink($product->getId(), RedirectServiceBuyNow::productEdit($product->getId()))),
+            element::td(TablePreset::elementTdStretchedLink($product->getId(), RedirectServiceBuyNow::fromRegistry()->productEdit($product->getId()))),
             element::td($product->getSku()),
             element::td($product->getName()),
             element::td($product->getDescription()),

@@ -34,7 +34,7 @@ class AdminBuyNowShopConfigListPage extends AdminBuyNowPage
                 ->setMainLabel(AdminViewFieldsBuyNow::SHOP_CONFIG_LIST)
                 ->setTableHeaderColumns(['Id', 'Name', 'Active', 'Order counter'])
                 ->setTableBody($this->elementShopConfigTableBody())
-                ->addFooterButtonAdd(RedirectServiceBuyNow::shopConfigAdd())
+                ->addFooterButtonAdd(RedirectServiceBuyNow::fromRegistry()->shopConfigAdd())
                 ->build();
     }
 
@@ -52,7 +52,7 @@ class AdminBuyNowShopConfigListPage extends AdminBuyNowPage
     public function elementShopConfigTableRow($shopConfig, $rowId) {
         return element::tr(
             attribute::clazz("position-relative"),
-            element::td(TablePreset::elementTdStretchedLink($shopConfig->getUuid(), RedirectServiceBuyNow::shopConfigEdit($shopConfig->getUuid()))),
+            element::td(TablePreset::elementTdStretchedLink($shopConfig->getUuid(), RedirectServiceBuyNow::fromRegistry()->shopConfigEdit($shopConfig->getUuid()))),
             element::td($shopConfig->getName()),
             element::td(TablePreset::elementTdSwitch($shopConfig->isActive())),
             element::td($shopConfig->getOrderCounter())

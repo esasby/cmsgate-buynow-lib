@@ -4,15 +4,22 @@
 namespace esas\cmsgate\buynow\controllers\client;
 
 
+use esas\cmsgate\bridge\service\OrderService;
 use esas\cmsgate\bridge\service\RecaptchaService;
-use esas\cmsgate\buynow\service\OrderCacheBuyNowService;
+use esas\cmsgate\buynow\dao\BasketBuyNow;
+use esas\cmsgate\buynow\dao\BasketBuyNowRepository;
+use esas\cmsgate\buynow\dao\BasketItemBuyNowRepository;
+use esas\cmsgate\buynow\dao\OrderBuyNow;
+use esas\cmsgate\buynow\service\BasketServiceBuyNow;
+use esas\cmsgate\buynow\service\OrderServiceBuyNow;
 use esas\cmsgate\buynow\dao\OrderDataBuyNow;
 use esas\cmsgate\buynow\dao\OrderDataItemBuyNow;
-use esas\cmsgate\buynow\BridgeConnectorBuyNow;
+
 use esas\cmsgate\buynow\hro\client\ClientBuyNowBasketViewHROFactory;
 use esas\cmsgate\buynow\protocol\RequestParamsBuyNow;
 use esas\cmsgate\buynow\service\RedirectServiceBuyNow;
 use esas\cmsgate\Registry;
+use esas\cmsgate\utils\CMSGateException;
 use esas\cmsgate\utils\htmlbuilder\page\PageUtils;
 use esas\cmsgate\utils\RequestUtils;
 use esas\cmsgate\bridge\service\SessionServiceBridge;
@@ -30,39 +37,44 @@ class ClientControllerBuyNowBasket extends ClientControllerBuyNow
 
     public function process() {
         try {
-            $basket = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->getById($this->basketId);
-            SessionServiceBridge::fromRegistry()::setShopConfigUUID($basket->getShopConfigId());
+            $basket = BasketBuyNowRepository::fromRegistry()->getById($this->basketId);
+            $isAccessible = BasketServiceBuyNow::fromRegistry()->checkClientPermission($basket);
+            SessionServiceBridge::fromRegistry()->setShopConfigUUID($basket->getShopConfigId());
             $basketViewPage = ClientBuyNowBasketViewHROFactory::findBuilder()
                 ->setBasket($basket)
+                ->setAccessible($isAccessible)
                 ->addCssLink($this->getClientUICssLink($basket));
-            if (RequestUtils::isMethodPost()) { // adding or updating
+            if (RequestUtils::isMethodPost() && $isAccessible) { // adding or updating
                 PageUtils::validateFormInputAndRenderOnError($basketViewPage);
                 RecaptchaService::fromRegistry()->validateRequest();
-                $this->orderConfirm();
+                $this->orderConfirm($basket);
             } else {
                 $basketViewPage->render();
                 exit(0);
             }
-
         } catch (Throwable $e) {
             Registry::getRegistry()->getMessenger()->addErrorMessage($e->getMessage());
+            throw $e;
         } catch (Exception $e) { // для совместимости с php 5
             Registry::getRegistry()->getMessenger()->addErrorMessage($e->getMessage());
+            throw $e;
         }
     }
 
-    protected function orderConfirm() {
-        $basket = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->getById(RequestParamsBuyNow::getBasketId());
-        SessionServiceBridge::fromRegistry()::setShopConfigUUID($basket->getShopConfigId());
+    /**
+     * @param $basket BasketBuyNow
+     * @throws CMSGateException
+     */
+    protected function orderConfirm($basket) {
+        SessionServiceBridge::fromRegistry()->setShopConfigUUID($basket->getShopConfigId());
         $orderDataBuyNow = new OrderDataBuyNow();
         $orderDataBuyNow
-            ->setOrderId(OrderCacheBuyNowService::fromRegistry()->generateOrderId($basket->getShopConfigId()))
-            ->setBasketId(RequestParamsBuyNow::getBasketId())
+            ->setOrderId(OrderServiceBuyNow::fromRegistry()->generateOrderId($basket->getShopConfigId()))
             ->setCustomerFIO(RequestParamsBuyNow::getCustomerFIO())
             ->setCustomerEmail(RequestParamsBuyNow::getCustomerEmail())
             ->setCustomerPhone(RequestParamsBuyNow::getCustomerPhone());
         $amount = 0;
-        $basketItems = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketItemRepository()->getByBasketId(RequestParamsBuyNow::getBasketId());
+        $basketItems = BasketItemBuyNowRepository::fromRegistry()->getByBasketId(RequestParamsBuyNow::getBasketId());
         foreach ($basketItems as $basketItem) {
             $product = $basketItem->getProduct();
             $count = RequestParamsBuyNow::getBasketProductCount($basketItem->getProductId());
@@ -79,8 +91,13 @@ class ClientControllerBuyNowBasket extends ClientControllerBuyNow
             $amount += $orderItem->getPrice() * $orderItem->getCount();
         }
         $orderDataBuyNow->setAmount($amount);
-        BridgeConnectorBuyNow::fromRegistry()->getOrderCacheService()->addSessionOrderCache($orderDataBuyNow);
-        BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->incrementCheckoutCount($basket->getId());
-        RedirectServiceBuyNow::clientOrderView(SessionServiceBridge::fromRegistry()::getOrderCacheUUID(), true);
+        $order = new OrderBuyNow();
+        $order
+            ->setBasketId(RequestParamsBuyNow::getBasketId())
+            ->setOrderData($orderDataBuyNow)
+            ->setExpiresAt(OrderServiceBuyNow::fromRegistry()->getOrderExpirationDate());
+        OrderService::fromRegistry()->addSessionOrder($order);
+        BasketBuyNowRepository::fromRegistry()->incrementCheckoutCount($basket->getId());
+        RedirectServiceBuyNow::fromRegistry()->clientOrderView(SessionServiceBridge::fromRegistry()->getOrderUUID(), true);
     }
 }

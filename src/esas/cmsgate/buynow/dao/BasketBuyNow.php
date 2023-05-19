@@ -5,6 +5,8 @@ namespace esas\cmsgate\buynow\dao;
 
 
 
+use DateTime;
+
 class BasketBuyNow
 {
     private $id;
@@ -35,7 +37,9 @@ class BasketBuyNow
     private $clientUICss;
     private $returnUrl;
     private $createdAt;
+    private $expiresAt;
     private $checkoutCount;
+    private $paidMaxCount;
     /**
      * @return mixed
      */
@@ -225,6 +229,38 @@ class BasketBuyNow
      */
     public function setCreatedAt($createdAt) {
         $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    /**
+     * @return DateTime
+     */
+    public function getExpiresAt() {
+        return $this->expiresAt;
+    }
+
+    /**
+     * @param DateTime $expiresAt
+     * @return BasketBuyNow
+     */
+    public function setExpiresAt($expiresAt) {
+        $this->expiresAt = $expiresAt == '' ? null : $expiresAt;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPaidMaxCount() {
+        return $this->paidMaxCount;
+    }
+
+    /**
+     * @param mixed $paidMaxCount
+     * @return BasketBuyNow
+     */
+    public function setPaidMaxCount($paidMaxCount) {
+        $this->paidMaxCount = $paidMaxCount;
         return $this;
     }
 

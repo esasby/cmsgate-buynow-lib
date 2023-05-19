@@ -13,13 +13,6 @@ use esas\cmsgate\hro\HRO;
 use esas\cmsgate\utils\htmlbuilder\page\AdditionalCssPage;
 use esas\cmsgate\utils\htmlbuilder\page\SingleFormPage;
 
-interface ClientBuyNowBasketViewHRO extends HRO, SingleFormPage, AdditionalCssPage
+interface ClientBuyNowErrorPageHRO extends HRO, AdditionalCssPage
 {
-    /**
-     * @param $basket BasketBuyNow
-     * @return ClientBuyNowBasketViewHRO
-     */
-    public function setBasket($basket);
-
-    public function setAccessible($isAccessible);
 }

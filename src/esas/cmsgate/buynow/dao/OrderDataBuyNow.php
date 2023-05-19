@@ -40,15 +40,6 @@ class OrderDataBuyNow
     }
 
     /**
-     * @param mixed $basketId
-     * @return OrderDataBuyNow
-     */
-    public function setBasketId($basketId) {
-        $this->basketId = $basketId;
-        return $this;
-    }
-
-    /**
      * @return mixed
      */
     public function getAmount() {

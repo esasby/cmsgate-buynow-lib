@@ -1,6 +1,7 @@
 <?php
 
 use esas\cmsgate\bridge\dao\OrderStatusBridge;
+use esas\cmsgate\buynow\messenger\MessagesBuyNow;
 use esas\cmsgate\buynow\protocol\RequestParamsBuyNow;
 use esas\cmsgate\buynow\view\admin\AdminViewFieldsBuyNow;
 use esas\cmsgate\buynow\view\client\ClientViewFieldsBuyNow;
@@ -36,6 +37,16 @@ return array(
     RequestParamsBuyNow::CUSTOMER_EMAIL => 'Email',
     RequestParamsBuyNow::CUSTOMER_FIO => 'Full name',
     RequestParamsBuyNow::CUSTOMER_PHONE => 'Phone number',
+    RequestParamsBuyNow::BASKET_MAX_PAID_COUNT => 'Payment limit',
+    RequestParamsBuyNow::BASKET_EXPIRES_AT => 'Expires at',
+    RequestParamsBuyNow::BASKET_ASK_NAME => 'Ask name?',
+    RequestParamsBuyNow::BASKET_ASK_EMAIL => 'Ask email?',
+    RequestParamsBuyNow::BASKET_ASK_PHONE => 'Ask phone?',
+    RequestParamsBuyNow::BASKET_ACTIVE => 'Active?',
+    MessagesBuyNow::BASKET_INCORRECT_ID => 'Incorrect basket id',
+    MessagesBuyNow::BASKET_IS_INACTIVE => 'Basket is inactive',
+    MessagesBuyNow::BASKET_IS_EXPIRED => 'Basket is expired',
+    MessagesBuyNow::BASKET_LIMIT_REACHED => 'Basket payment limit reached',
     ClientViewFieldsBuyNow::BASKET_PAGE_HEADER => 'Ordering',
     ClientViewFieldsBuyNow::BASKET_PAGE_HEADER_DETAILS => 'Please check data and confirm order',
     ClientViewFieldsBuyNow::HOME_PAGE_HEADER => 'BuyNow Epos',

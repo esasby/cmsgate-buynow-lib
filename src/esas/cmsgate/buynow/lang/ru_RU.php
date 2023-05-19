@@ -1,6 +1,7 @@
 <?php
 
 use esas\cmsgate\bridge\dao\OrderStatusBridge;
+use esas\cmsgate\buynow\messenger\MessagesBuyNow;
 use esas\cmsgate\buynow\protocol\RequestParamsBuyNow;
 use esas\cmsgate\buynow\view\admin\AdminViewFieldsBuyNow;
 use esas\cmsgate\buynow\view\client\ClientViewFieldsBuyNow;
@@ -36,6 +37,16 @@ return array(
     RequestParamsBuyNow::CUSTOMER_EMAIL => 'Email',
     RequestParamsBuyNow::CUSTOMER_FIO => 'Имя и фамилия',
     RequestParamsBuyNow::CUSTOMER_PHONE => 'Номер телефона',
+    RequestParamsBuyNow::BASKET_MAX_PAID_COUNT => 'Лимит оплат',
+    RequestParamsBuyNow::BASKET_EXPIRES_AT => 'Срок действия',
+    RequestParamsBuyNow::BASKET_ASK_NAME => 'Запрашивать имя?',
+    RequestParamsBuyNow::BASKET_ASK_EMAIL => 'Запрашивать email?',
+    RequestParamsBuyNow::BASKET_ASK_PHONE => 'Запрашивать телефон?',
+    RequestParamsBuyNow::BASKET_ACTIVE => 'Корзина активна?',
+    MessagesBuyNow::BASKET_INCORRECT_ID => 'Неверный идентификатор корзина',
+    MessagesBuyNow::BASKET_IS_INACTIVE => 'Оформление заказа невозможно. Корзина неактивна.',
+    MessagesBuyNow::BASKET_IS_EXPIRED => 'Оформление заказа невозможно. Срок жизни корзины истек',
+    MessagesBuyNow::BASKET_LIMIT_REACHED => 'Оформление заказа невозможно. Достигнут лимит покупок для данного товара',
     ClientViewFieldsBuyNow::BASKET_PAGE_HEADER => 'Оформление заказа',
     ClientViewFieldsBuyNow::BASKET_PAGE_HEADER_DETAILS => 'Для завершения покупки необходимо оформить заказа',
     ClientViewFieldsBuyNow::HOME_PAGE_HEADER => 'BuyNow Epos',

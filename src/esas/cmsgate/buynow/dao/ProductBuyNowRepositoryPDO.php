@@ -1,7 +1,9 @@
 <?php
+
 namespace esas\cmsgate\buynow\dao;
 
 use esas\cmsgate\Registry;
+use esas\cmsgate\service\PDOService;
 use esas\cmsgate\utils\StringUtils;
 use PDO;
 
@@ -24,13 +26,14 @@ class ProductBuyNowRepositoryPDO extends ProductBuyNowRepository
     const COLUMN_IMAGE = 'image';
     const COLUMN_CREATED_AT = 'created_at';
 
-    public function __construct($pdo, $tableName = null)
-    {
+    public function __construct($tableName = null) {
         parent::__construct();
-        $this->pdo = $pdo;
-        if ($tableName != null)
-            $this->tableName = $tableName;
-        else
+        $this->tableName = $tableName;
+    }
+
+    public function postConstruct() {
+        $this->pdo = PDOService::fromRegistry()->getPDO(ProductBuyNowRepository::class);
+        if ($this->tableName == null)
             $this->tableName = Registry::getRegistry()->getModuleDescriptor()->getCmsAndPaysystemName()
                 . '_product';
     }
@@ -89,7 +92,7 @@ class ProductBuyNowRepositoryPDO extends ProductBuyNowRepository
         ]);
         $product = null;
         while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
-            $product =  $this->createProductObject($row);
+            $product = $this->createProductObject($row);
         }
         return $product;
     }
@@ -110,7 +113,7 @@ class ProductBuyNowRepositoryPDO extends ProductBuyNowRepository
         ]);
         $products = array();
         while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
-            $products[] =  $this->createProductObject($row);
+            $products[] = $this->createProductObject($row);
         }
         return $products;
     }

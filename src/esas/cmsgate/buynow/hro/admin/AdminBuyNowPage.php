@@ -3,8 +3,7 @@
 
 namespace esas\cmsgate\buynow\hro\admin;
 
-
-use esas\cmsgate\bridge\BridgeConnector;
+use esas\cmsgate\buynow\properties\PropertiesBuyNow;
 use esas\cmsgate\buynow\view\admin\AdminViewFieldsBuyNow;
 use esas\cmsgate\buynow\service\RedirectServiceBuyNow;
 use esas\cmsgate\hro\pages\PageHRO;
@@ -60,26 +59,26 @@ abstract class AdminBuyNowPage extends PageHRO implements DisplayErrorPage
                         attribute::id("navbarCollapse"),
                         bootstrap::elementNavBarList(
                             bootstrap::elementNavBarListItem(
-                                RedirectServiceBuyNow::shopConfigList(),
+                                RedirectServiceBuyNow::fromRegistry()->shopConfigList(),
                                 Translator::fromRegistry()->translate(AdminViewFieldsBuyNow::MENU_SHOP_CONFIGS),
                                 $this->getNavItemId() == RedirectServiceBuyNow::PATH_ADMIN_SHOP_CONFIGS),
                             bootstrap::elementNavBarListItem(
-                                RedirectServiceBuyNow::productList(),
+                                RedirectServiceBuyNow::fromRegistry()->productList(),
                                 Translator::fromRegistry()->translate(AdminViewFieldsBuyNow::MENU_PRODUCTS),
                                 $this->getNavItemId() == RedirectServiceBuyNow::PATH_ADMIN_PRODUCTS),
                             bootstrap::elementNavBarListItem(
-                                RedirectServiceBuyNow::basketList(),
+                                RedirectServiceBuyNow::fromRegistry()->basketList(),
                                 Translator::fromRegistry()->translate(AdminViewFieldsBuyNow::MENU_BASKETS),
                                 $this->getNavItemId() == RedirectServiceBuyNow::PATH_ADMIN_BASKETS),
                             bootstrap::elementNavBarListItem(
-                                RedirectServiceBuyNow::orderList(),
+                                RedirectServiceBuyNow::fromRegistry()->orderList(),
                                 Translator::fromRegistry()->translate(AdminViewFieldsBuyNow::MENU_ORDERS),
                                 $this->getNavItemId() == RedirectServiceBuyNow::PATH_ADMIN_ORDERS)
                         )
                     ),
                     element::a(
                         attribute::clazz("btn btn-outline-warning my-2 my-sm-0 btn-md"),
-                        attribute::href(RedirectServiceBuyNow::fromRegistry()->logoutPage()),
+                        attribute::href(RedirectServiceBuyNow::fromRegistry()->fromRegistry()->logoutPage()),
                         Translator::fromRegistry()->translate(AdminViewFieldsBuyNow::LOGOUT)
                     )
                 )
@@ -105,7 +104,7 @@ abstract class AdminBuyNowPage extends PageHRO implements DisplayErrorPage
 
     public static function elementTestLabel() {
         return
-            BridgeConnector::fromRegistry()->isSandbox() ? element::small(
+            PropertiesBuyNow::fromRegistry()->isSandbox() ? element::small(
                 attribute::style('color: #EC9941!important; vertical-align: sub'),
                 'test') : "";
     }

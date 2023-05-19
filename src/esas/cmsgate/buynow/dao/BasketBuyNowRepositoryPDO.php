@@ -1,8 +1,12 @@
 <?php
+
 namespace esas\cmsgate\buynow\dao;
 
-use esas\cmsgate\buynow\BridgeConnectorBuyNow;
+use DateTime;
+use esas\cmsgate\bridge\dao\ShopConfigRepository;
+
 use esas\cmsgate\Registry;
+use esas\cmsgate\service\PDOService;
 use esas\cmsgate\utils\StringUtils;
 use PDO;
 
@@ -25,15 +29,18 @@ class BasketBuyNowRepositoryPDO extends BasketBuyNowRepository
     const COLUMN_RETURN_URL = 'return_url';
     const COLUMN_CLIENT_UI_CSS = 'client_ui_css';
     const COLUMN_CREATED_AT = 'created_at';
+    const COLUMN_EXPIRES_AT = 'expires_at';
     const COLUMN_CHECKOUT_COUNT = 'checkout_count';
+    const COLUMN_PAID_MAX_COUNT = 'paid_max_count';
 
-    public function __construct($pdo, $basketTable = null)
-    {
+    public function __construct($basketTable = null) {
         parent::__construct();
-        $this->pdo = $pdo;
-        if ($basketTable != null)
-            $this->tableName = $basketTable;
-        else
+        $this->tableName = $basketTable;
+    }
+
+    public function postConstruct() {
+        $this->pdo = PDOService::fromRegistry()->getPDO(BasketBuyNowRepository::class);
+        if ($this->tableName == null)
             $this->tableName = Registry::getRegistry()->getModuleDescriptor()->getCmsAndPaysystemName()
                 . '_basket';
     }
@@ -48,7 +55,7 @@ class BasketBuyNowRepositoryPDO extends BasketBuyNowRepository
             while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
                 $uuid = $row[self::COLUMN_ID];
                 $this->logger->info("Updating basket with id[" . $uuid . "]");
-                $sql = "UPDATE $this->tableName set shop_config_id = :shop_config_id, active = :active, name = :name, description = :description, ask_phone = :ask_phone, ask_email = :ask_email, ask_fio = :ask_fio, return_url = :return_url, client_ui_css = :client_ui_css  where id = :id";
+                $sql = "UPDATE $this->tableName set shop_config_id = :shop_config_id, active = :active, name = :name, description = :description, ask_phone = :ask_phone, ask_email = :ask_email, ask_fio = :ask_fio, return_url = :return_url, client_ui_css = :client_ui_css, paid_max_count = :paid_max_count, expires_at = :expires_at  where id = :id";
                 $stmt = $this->pdo->prepare($sql);
                 $stmt->execute([
                     'id' => $basket->getId(),
@@ -61,12 +68,14 @@ class BasketBuyNowRepositoryPDO extends BasketBuyNowRepository
                     self::COLUMN_ASK_FIO => $basket->isAskFIO() ? 1 : 0,
                     self::COLUMN_RETURN_URL => $basket->getReturnUrl(),
                     self::COLUMN_CLIENT_UI_CSS => $basket->getClientUICss(),
+                    self::COLUMN_PAID_MAX_COUNT => $basket->getPaidMaxCount(),
+                    self::COLUMN_EXPIRES_AT => $basket->getExpiresAt()->format('Y-m-d H:i:s'),
                 ]);
                 return $uuid;
             }
         }
         $uuid = StringUtils::guidv4();
-        $sql = "INSERT INTO $this->tableName (id, shop_config_id, name, description, active, ask_phone, ask_email, ask_fio, return_url, client_ui_css, checkout_count, created_at) VALUES (:id, :shop_config_id, :name, :description, :active, :ask_phone, :ask_email, :ask_fio, :return_url, :client_ui_css, 0, CURRENT_TIMESTAMP)";
+        $sql = "INSERT INTO $this->tableName (id, shop_config_id, name, description, active, ask_phone, ask_email, ask_fio, return_url, client_ui_css, paid_max_count, expires_at, checkout_count, created_at) VALUES (:id, :shop_config_id, :name, :description, :active, :ask_phone, :ask_email, :ask_fio, :return_url, :client_ui_css, :paid_max_count, :expires_at, 0, CURRENT_TIMESTAMP)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'id' => $uuid,
@@ -79,6 +88,8 @@ class BasketBuyNowRepositoryPDO extends BasketBuyNowRepository
             self::COLUMN_ASK_FIO => $basket->isAskFIO() ? 1 : 0,
             self::COLUMN_RETURN_URL => $basket->getReturnUrl(),
             self::COLUMN_CLIENT_UI_CSS => $basket->getClientUICss(),
+            self::COLUMN_PAID_MAX_COUNT => $basket->getPaidMaxCount(),
+            self::COLUMN_EXPIRES_AT => $basket->getExpiresAt()->format('Y-m-d H:i:s'),
         ]);
         $this->logger->info("Basket was saved by id[" . $uuid . "]");
         return $uuid;
@@ -90,11 +101,11 @@ class BasketBuyNowRepositoryPDO extends BasketBuyNowRepository
         $stmt->execute([
             'id' => $basketId,
         ]);
-        $product = null;
+        $basket = null;
         while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
-            $product =  $this->createBasketObject($row);
+            $basket = $this->createBasketObject($row);
         }
-        return $product;
+        return $basket;
     }
 
     public function getByShopConfigId($shopConfigId) {
@@ -105,7 +116,7 @@ class BasketBuyNowRepositoryPDO extends BasketBuyNowRepository
         ]);
         $products = array();
         while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
-            $products[] =  $this->createBasketObject($row);
+            $products[] = $this->createBasketObject($row);
         }
         return $products;
     }
@@ -115,16 +126,18 @@ class BasketBuyNowRepositoryPDO extends BasketBuyNowRepository
         $basket
             ->setId($row[self::COLUMN_ID])
             ->setShopConfigId($row[self::COLUMN_SHOP_CONFIG_ID])
-            ->setShopConfig(BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->getByUUID($row[self::COLUMN_SHOP_CONFIG_ID]))
+            ->setShopConfig(ShopConfigRepository::fromRegistry()->getById($row[self::COLUMN_SHOP_CONFIG_ID]))
             ->setName($row[self::COLUMN_NAME])
             ->setDescription($row[self::COLUMN_DESCRIPTION])
             ->setCreatedAt($row[self::COLUMN_CREATED_AT])
+            ->setExpiresAt(DateTime::createFromFormat('Y-m-d H:i:s', $row[self::COLUMN_EXPIRES_AT]))
             ->setActive($row[self::COLUMN_ACTIVE])
             ->setAskFIO($row[self::COLUMN_ASK_FIO])
             ->setAskPhone($row[self::COLUMN_ASK_PHONE])
             ->setAskEmail($row[self::COLUMN_ASK_EMAIL])
             ->setReturnUrl($row[self::COLUMN_RETURN_URL])
             ->setClientUICss($row[self::COLUMN_CLIENT_UI_CSS])
+            ->setPaidMaxCount($row[self::COLUMN_PAID_MAX_COUNT])
             ->setCheckoutCount($row[self::COLUMN_CHECKOUT_COUNT]);
         return $basket;
     }
@@ -138,7 +151,7 @@ class BasketBuyNowRepositoryPDO extends BasketBuyNowRepository
     }
 
     public function getByMerchantId($merchantId) {
-        $shopConfigsTable = BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->getTableName();
+        $shopConfigsTable = ShopConfigRepository::fromRegistry()->getTableName();
         $sql = "select b.* from $this->tableName b, $shopConfigsTable sc  where b.shop_config_id = sc.id and sc.merchant_id = :merchant_id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
@@ -146,7 +159,7 @@ class BasketBuyNowRepositoryPDO extends BasketBuyNowRepository
         ]);
         $baskets = array();
         while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
-            $baskets[] =  $this->createBasketObject($row);
+            $baskets[] = $this->createBasketObject($row);
         }
         return $baskets;
     }
@@ -160,7 +173,7 @@ class BasketBuyNowRepositoryPDO extends BasketBuyNowRepository
     }
 
     public function getByProductId($productId) {
-        $basketItemTable = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketItemRepository()->getTableName();
+        $basketItemTable = BasketItemBuyNowRepository::fromRegistry()->getTableName();
         $sql = "select b.* from $this->tableName b, $basketItemTable bi  where b.id = bi.basket_id and bi.product_id = :product_id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
@@ -168,7 +181,7 @@ class BasketBuyNowRepositoryPDO extends BasketBuyNowRepository
         ]);
         $baskets = array();
         while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
-            $baskets[] =  $this->createBasketObject($row);
+            $baskets[] = $this->createBasketObject($row);
         }
         return $baskets;
     }

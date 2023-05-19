@@ -4,6 +4,7 @@
 namespace esas\cmsgate\buynow\properties;
 
 
+use esas\cmsgate\bridge\properties\PropertiesBridge;
 use esas\cmsgate\bridge\properties\RecaptchaProperties;
 use esas\cmsgate\properties\LocaleProperties;
 use esas\cmsgate\properties\PDOConnectionProperties;
@@ -11,7 +12,7 @@ use esas\cmsgate\properties\SandboxProperties;
 use esas\cmsgate\properties\ViewProperties;
 use esas\cmsgate\Registry;
 
-abstract class PropertiesBuyNow implements
+abstract class PropertiesBuyNow extends PropertiesBridge implements
     PDOConnectionProperties,
     SandboxProperties,
     ViewProperties,

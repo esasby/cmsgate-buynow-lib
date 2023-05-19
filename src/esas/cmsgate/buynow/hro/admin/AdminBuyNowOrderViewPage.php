@@ -4,11 +4,13 @@
 namespace esas\cmsgate\buynow\hro\admin;
 
 
-use esas\cmsgate\bridge\dao\OrderCache;
+use esas\cmsgate\bridge\dao\Order;
 use esas\cmsgate\bridge\dao\OrderStatusBridge;
+use esas\cmsgate\bridge\dao\ShopConfigRepository;
+use esas\cmsgate\buynow\dao\BasketBuyNowRepository;
 use esas\cmsgate\buynow\dao\OrderDataBuyNow;
 use esas\cmsgate\buynow\dao\ShopConfigBuyNow;
-use esas\cmsgate\buynow\BridgeConnectorBuyNow;
+
 use esas\cmsgate\buynow\dao\BasketBuyNow;
 use esas\cmsgate\buynow\view\admin\AdminViewFieldsBuyNow;
 use esas\cmsgate\buynow\service\RedirectServiceBuyNow;
@@ -26,7 +28,7 @@ use esas\cmsgate\utils\htmlbuilder\presets\ScriptsPreset;
 class AdminBuyNowOrderViewPage extends AdminBuyNowPage
 {
     /**
-     * @var OrderCache
+     * @var Order
      */
     private $order;
 
@@ -46,14 +48,14 @@ class AdminBuyNowOrderViewPage extends AdminBuyNowPage
     private $shopConfig;
 
     /**
-     * @param OrderCache $order
+     * @param Order $order
      * @return AdminBuyNowOrderViewPage
      */
     public function setOrder($order) {
         $this->order = $order;
         $this->orderData = $order->getOrderData();
-        $this->basket = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->getById($this->orderData->getBasketId());
-        $this->shopConfig = BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->getByUUID($this->order->getShopConfigId());
+        $this->basket = BasketBuyNowRepository::fromRegistry()->getById($order->getBasketId());
+        $this->shopConfig = ShopConfigRepository::fromRegistry()->getById($this->order->getShopConfigId());
         return $this;
     }
 
@@ -88,9 +90,9 @@ class AdminBuyNowOrderViewPage extends AdminBuyNowPage
                 ->addDt("Shop order id")
                 ->addDd($this->orderData->getOrderId())
                 ->addDt("Basket")
-                ->addDd(bootstrap::elementAHrefNoDecoration($this->basket->getName(), RedirectServiceBuyNow::basketEdit($this->basket->getId())))
+                ->addDd(bootstrap::elementAHrefNoDecoration($this->basket->getName(), RedirectServiceBuyNow::fromRegistry()->basketEdit($this->basket->getId())))
                 ->addDt("Shop config")
-                ->addDd(bootstrap::elementAHrefNoDecoration($this->shopConfig->getName(), RedirectServiceBuyNow::shopConfigEdit($this->shopConfig->getId())))
+                ->addDd(bootstrap::elementAHrefNoDecoration($this->shopConfig->getName(), RedirectServiceBuyNow::fromRegistry()->shopConfigEdit($this->shopConfig->getId())))
                 ->addDt("Created At")
                 ->addDd($this->order->getCreatedAt())
                 ->addDt("External Id")
@@ -109,7 +111,7 @@ class AdminBuyNowOrderViewPage extends AdminBuyNowPage
                 ->addDd($this->elementItems())
                 ->build())
             ->setCardFooter(CardFooterHROFactory::findBuilder()
-                ->addButtonCancel(RedirectServiceBuyNow::orderList(false))
+                ->addButtonCancel(RedirectServiceBuyNow::fromRegistry()->orderList(false))
                 ->build());
         return $orderDetailsHRO->build();
     }
@@ -143,7 +145,7 @@ class AdminBuyNowOrderViewPage extends AdminBuyNowPage
                 element::tr(
                     attribute::clazz("position-relative"),
                     element::td($item->getName()),
-                    element::td(bootstrap::elementAHrefNoDecoration($item->getSku(), RedirectServiceBuyNow::productEdit($item->getProductId()))),
+                    element::td(bootstrap::elementAHrefNoDecoration($item->getSku(), RedirectServiceBuyNow::fromRegistry()->productEdit($item->getProductId()))),
                     element::td($item->getCount() . ' x ' . $item->getPrice() . " BYN"),
                     element::td($item->getPrice() * $item->getCount())
                 );
@@ -156,7 +158,7 @@ class AdminBuyNowOrderViewPage extends AdminBuyNowPage
     protected function elementClientLinkPanel() {
         return CopyToClipboardPanelHROFactory::findBuilder()
             ->setLabelId(AdminViewFieldsBuyNow::CLIENT_ORDER_LINK)
-            ->setValue(RedirectServiceBuyNow::clientOrderView($this->order->getId()))
+            ->setValue(RedirectServiceBuyNow::fromRegistry()->clientOrderView($this->order->getId()))
             ->build();
     }
 

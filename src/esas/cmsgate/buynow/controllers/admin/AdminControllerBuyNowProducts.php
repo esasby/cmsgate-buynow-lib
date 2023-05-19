@@ -4,9 +4,12 @@
 namespace esas\cmsgate\buynow\controllers\admin;
 
 
-use esas\cmsgate\bridge\BridgeConnector;
-use esas\cmsgate\buynow\BridgeConnectorBuyNow;
+use esas\cmsgate\bridge\service\MerchantService;
+
+use esas\cmsgate\buynow\dao\BasketBuyNowRepository;
+use esas\cmsgate\buynow\dao\BasketItemBuyNowRepository;
 use esas\cmsgate\buynow\dao\ProductBuyNow;
+use esas\cmsgate\buynow\dao\ProductBuyNowRepository;
 use esas\cmsgate\buynow\hro\admin\AdminBuyNowProductListPage;
 use esas\cmsgate\buynow\hro\admin\AdminBuyNowProductViewPage;
 use esas\cmsgate\buynow\protocol\RequestParamsBuyNow;
@@ -27,7 +30,7 @@ class AdminControllerBuyNowProducts extends Controller
     const PATTERN_PRODUCT_DELETE = '/.*\/products\/(?<productId>.+)\/delete$/';
 
     public function process() {
-        BridgeConnector::fromRegistry()->getMerchantService()->checkAuth(true);
+        MerchantService::fromRegistry()->checkAuth(true);
         try {
             $request = RequestUtils::getRequestPath();
             if (StringUtils::endsWith($request, RedirectServiceBuyNow::PATH_ADMIN_PRODUCTS)) {
@@ -40,9 +43,9 @@ class AdminControllerBuyNowProducts extends Controller
                 $this->renderProductViewPage($product);
             } elseif (preg_match(self::PATTERN_PRODUCT_DELETE, $request, $pathParams)) {
                 $product = $this->checkProductPermission($pathParams['productId']);
-                BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketItemRepository()->deleteByProductId($product->getId());
-                BridgeConnectorBuyNow::fromRegistry()->getBuyNowProductRepository()->deleteById($product->getId());
-                RedirectServiceBuyNow::productList(true);
+                BasketItemBuyNowRepository::fromRegistry()->deleteByProductId($product->getId());
+                ProductBuyNowRepository::fromRegistry()->deleteById($product->getId());
+                RedirectServiceBuyNow::fromRegistry()->productList(true);
             } elseif (preg_match(self::PATTERN_PRODUCT_EDIT, $request, $pathParams)) {
                 $product = $this->checkProductPermission($pathParams['productId']);
                 $this->renderProductViewPage($product);
@@ -57,7 +60,6 @@ class AdminControllerBuyNowProducts extends Controller
             Registry::getRegistry()->getMessenger()->addErrorMessage($e->getMessage());
             throw $e;
         }
-//        BridgeConnector::fromRegistry()->getAdminConfigPage()->render();
     }
 
     public function addOrUpdateProduct() {
@@ -71,15 +73,15 @@ class AdminControllerBuyNowProducts extends Controller
             ->setPrice(RequestParamsBuyNow::getProductPrice())
             ->setCurrency(RequestParamsBuyNow::getProductCurrency())
             ->setImage(RequestParamsBuyNow::getProductImage())
-            ->setMerchantId(SessionServiceBridge::fromRegistry()::getMerchantUUID());
+            ->setMerchantId(SessionServiceBridge::fromRegistry()->getMerchantUUID());
         $productEditPage = AdminBuyNowProductViewPage::builder()->setProduct($product);
         PageUtils::validateFormInputAndRenderOnError($productEditPage);
         try {
             if ($product->getId() != null) {
                 $this->checkProductPermission($product->getId());
             }
-            BridgeConnectorBuyNow::fromRegistry()->getBuyNowProductRepository()->saveOrUpdate($product);
-            RedirectServiceBuyNow::productList(true);
+            ProductBuyNowRepository::fromRegistry()->saveOrUpdate($product);
+            RedirectServiceBuyNow::fromRegistry()->productList(true);
         } catch (Exception $e) {
             Registry::getRegistry()->getMessenger()->addErrorMessage($e->getMessage());
             $productEditPage->render();
@@ -89,7 +91,7 @@ class AdminControllerBuyNowProducts extends Controller
 
     public function renderProductListPage() {
         AdminBuyNowProductListPage::builder()
-            ->setProductList(BridgeConnectorBuyNow::fromRegistry()->getBuyNowProductRepository()->getByMerchantId(SessionServiceBridge::fromRegistry()::getMerchantUUID()))
+            ->setProductList(ProductBuyNowRepository::fromRegistry()->getByMerchantId(SessionServiceBridge::fromRegistry()->getMerchantUUID()))
             ->buildAndDisplay();
         exit(0);
     }
@@ -100,7 +102,7 @@ class AdminControllerBuyNowProducts extends Controller
     public function renderProductViewPage($product) {
         $linkedBaskets = null;
         if (!empty($product->getId())) {
-            $linkedBaskets = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->getByProductId($product->getId());
+            $linkedBaskets = BasketBuyNowRepository::fromRegistry()->getByProductId($product->getId());
         }
         AdminBuyNowProductViewPage::builder()
             ->setProduct($product)
@@ -110,8 +112,8 @@ class AdminControllerBuyNowProducts extends Controller
     }
 
     public static function checkProductPermission($productId) {
-        $product = BridgeConnectorBuyNow::fromRegistry()->getBuyNowProductRepository()->getById($productId);
-        if ($product == null || $product->getMerchantId() != SessionServiceBridge::fromRegistry()::getMerchantUUID())
+        $product = ProductBuyNowRepository::fromRegistry()->getById($productId);
+        if ($product == null || $product->getMerchantId() != SessionServiceBridge::fromRegistry()->getMerchantUUID())
             throw new CMSGateException('This product can not be managed by current merchant');
         return $product;
     }

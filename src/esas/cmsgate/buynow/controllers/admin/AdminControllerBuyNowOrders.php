@@ -4,8 +4,10 @@
 namespace esas\cmsgate\buynow\controllers\admin;
 
 
-use esas\cmsgate\bridge\BridgeConnector;
-use esas\cmsgate\buynow\BridgeConnectorBuyNow;
+use esas\cmsgate\bridge\dao\OrderRepository;
+use esas\cmsgate\bridge\dao\ShopConfigRepository;
+use esas\cmsgate\bridge\service\MerchantService;
+
 use esas\cmsgate\buynow\hro\admin\AdminBuyNowOrderListPage;
 use esas\cmsgate\buynow\hro\admin\AdminBuyNowOrderViewPage;
 use esas\cmsgate\buynow\service\RedirectServiceBuyNow;
@@ -23,7 +25,7 @@ class AdminControllerBuyNowOrders extends Controller
     const PATTERN_ORDER_VIEW = '/.*\/orders\/(?<orderId>.+)$/';
 
     public function process() {
-        BridgeConnector::fromRegistry()->getMerchantService()->checkAuth(true);
+        MerchantService::fromRegistry()->checkAuth(true);
         try {
             $request = RequestUtils::getRequestPath();
             if (StringUtils::endsWith($request, RedirectServiceBuyNow::PATH_ADMIN_ORDERS)) {
@@ -46,8 +48,8 @@ class AdminControllerBuyNowOrders extends Controller
 
     public function renderOrderListPage() {
         $orders = array();
-        foreach (BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->getByMerchantId(SessionServiceBridge::fromRegistry()::getMerchantUUID()) as $shopConfig) {
-            $orders = array_merge($orders, BridgeConnectorBuyNow::fromRegistry()->getOrderCacheRepository()->getByShopConfigId($shopConfig->getUuid()));
+        foreach (ShopConfigRepository::fromRegistry()->getByMerchantId(SessionServiceBridge::fromRegistry()->getMerchantUUID()) as $shopConfig) {
+            $orders = array_merge($orders, OrderRepository::fromRegistry()->getByShopConfigId($shopConfig->getUuid()));
         }
         AdminBuyNowOrderListPage::builder()
             ->setOrderList($orders)
@@ -63,9 +65,9 @@ class AdminControllerBuyNowOrders extends Controller
     }
 
     public function checkOrderPermission($orderId) {
-        $order = BridgeConnectorBuyNow::fromRegistry()->getOrderCacheRepository()->getByID($orderId);
-        $shopConfig = BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->getByID($order->getShopConfigId());
-        if ($order == null || $shopConfig->getMerchantId() != SessionServiceBridge::fromRegistry()::getMerchantUUID())
+        $order = OrderRepository::fromRegistry()->getByID($orderId);
+        $shopConfig = ShopConfigRepository::fromRegistry()->getByID($order->getShopConfigId());
+        if ($order == null || $shopConfig->getMerchantId() != SessionServiceBridge::fromRegistry()->getMerchantUUID())
             throw new CMSGateException('This order can not be managed by current merchant');
         return $order;
     }

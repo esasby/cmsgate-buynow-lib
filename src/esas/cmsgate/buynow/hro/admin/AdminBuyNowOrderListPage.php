@@ -4,10 +4,12 @@
 namespace esas\cmsgate\buynow\hro\admin;
 
 
-use esas\cmsgate\bridge\dao\OrderCache;
+use esas\cmsgate\bridge\dao\Order;
+use esas\cmsgate\bridge\dao\ShopConfigRepository;
+use esas\cmsgate\buynow\dao\BasketBuyNowRepository;
 use esas\cmsgate\buynow\dao\OrderDataBuyNow;
 use esas\cmsgate\buynow\dao\ShopConfigBuyNow;
-use esas\cmsgate\buynow\BridgeConnectorBuyNow;
+
 use esas\cmsgate\buynow\view\admin\AdminViewFieldsBuyNow;
 use esas\cmsgate\buynow\service\RedirectServiceBuyNow;
 use esas\cmsgate\hro\tables\DataListHROFactory;
@@ -21,7 +23,7 @@ class AdminBuyNowOrderListPage extends AdminBuyNowPage
     private $orderList;
 
     /**
-     * @param OrderCache[] $orderList
+     * @param Order[] $orderList
      * @return AdminBuyNowOrderListPage
      */
     public function setOrderList($orderList) {
@@ -47,17 +49,17 @@ class AdminBuyNowOrderListPage extends AdminBuyNowPage
     }
 
     /**
-     * @param OrderCache $order
+     * @param Order $order
      */
     public function elementOrdersTableRow($order, $rowId) {
         /** @var OrderDataBuyNow $orderData */
         $orderData = $order->getOrderData();
-        $basket = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->getById($orderData->getBasketId());
+        $basket = BasketBuyNowRepository::fromRegistry()->getById($order->getBasketId());
         /** @var ShopConfigBuyNow $shopConfig */
-        $shopConfig = BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->getByUUID($order->getShopConfigId());
+        $shopConfig = ShopConfigRepository::fromRegistry()->getById($order->getShopConfigId());
         return element::tr(
             attribute::clazz("position-relative"),
-            element::td(TablePreset::elementTdStretchedLink($order->getId(), RedirectServiceBuyNow::orderView($order->getId()))),
+            element::td(TablePreset::elementTdStretchedLink($order->getId(), RedirectServiceBuyNow::fromRegistry()->orderView($order->getId()))),
             element::td($orderData->getOrderId()),
             element::td($basket->getName()),
             element::td($shopConfig->getName()),

@@ -5,6 +5,7 @@ namespace esas\cmsgate\buynow\service;
 
 
 use esas\cmsgate\bridge\service\RedirectServiceBridge;
+use esas\cmsgate\Registry;
 
 class RedirectServiceBuyNow extends RedirectServiceBridge
 {
@@ -22,6 +23,14 @@ class RedirectServiceBuyNow extends RedirectServiceBridge
     const PATH_CLIENT_BASKETS = "/baskets";
     const PATH_CLIENT_ORDERS = "/orders";
 
+    /**
+     * @return $this
+     * @throws \esas\cmsgate\utils\CMSGateException
+     */
+    public static function fromRegistry() {
+        return Registry::getRegistry()->getService(RedirectService::class, new RedirectServiceBuyNow());
+    }
+
     public function loginPage($sendHeader = false) {
         return self::returnAbsolutePathOrRedirect(self::PATH_ADMIN_LOGIN, $sendHeader);
     }
@@ -34,63 +43,63 @@ class RedirectServiceBuyNow extends RedirectServiceBridge
         return self::returnAbsolutePathOrRedirect(self::PATH_ADMIN_PRODUCTS, $sendHeader);
     }
 
-    public static function basketList($sendHeader = false) {
+    public function basketList($sendHeader = false) {
         return self::returnAbsolutePathOrRedirect(self::PATH_ADMIN_BASKETS, $sendHeader);
     }
 
-    public static function basketAdd($sendHeader = false) {
+    public function basketAdd($sendHeader = false) {
         return self::returnAbsolutePathOrRedirect(self::PATH_ADMIN_BASKETS_ADD, $sendHeader);
     }
 
-    public static function basketEdit($basketId, $sendHeader = false) {
+    public function basketEdit($basketId, $sendHeader = false) {
         return self::returnAbsolutePathOrRedirect(self::PATH_ADMIN_BASKETS . '/' . $basketId, $sendHeader);
     }
 
-    public static function basketDelete($basketId, $sendHeader = false) {
+    public function basketDelete($basketId, $sendHeader = false) {
         return self::returnAbsolutePathOrRedirect(self::PATH_ADMIN_BASKETS . '/' . $basketId . '/delete', $sendHeader);
     }
 
-    public static function basketItemAdd($basketId, $sendHeader = false) {
+    public function basketItemAdd($basketId, $sendHeader = false) {
         return self::returnAbsolutePathOrRedirect(self::PATH_ADMIN_BASKETS . '/' . $basketId . '/items/add', $sendHeader);
     }
 
-    public static function basketItemDelete($basketId, $basketItemId, $sendHeader = false) {
+    public function basketItemDelete($basketId, $basketItemId, $sendHeader = false) {
         return self::returnAbsolutePathOrRedirect(self::PATH_ADMIN_BASKETS . '/' . $basketId . '/items/' . $basketItemId . '/delete', $sendHeader);
     }
 
-    public static function basketItemEdit($basketId, $basketItemId, $sendHeader = false) {
+    public function basketItemEdit($basketId, $basketItemId, $sendHeader = false) {
         return self::returnAbsolutePathOrRedirect(self::PATH_ADMIN_BASKETS . '/' . $basketId . '/items/' . $basketItemId, $sendHeader);
     }
 
-    public static function shopConfigList($sendHeader = false) {
+    public function shopConfigList($sendHeader = false) {
         return self::returnAbsolutePathOrRedirect(self::PATH_ADMIN_SHOP_CONFIGS, $sendHeader);
     }
 
-    public static function shopConfigAdd($sendHeader = false) {
+    public function shopConfigAdd($sendHeader = false) {
         return self::returnAbsolutePathOrRedirect(self::PATH_ADMIN_SHOP_CONFIGS_ADD, $sendHeader);
     }
 
-    public static function shopConfigEdit($shopConfigId, $sendHeader = false) {
+    public function shopConfigEdit($shopConfigId, $sendHeader = false) {
         return self::returnAbsolutePathOrRedirect(self::PATH_ADMIN_SHOP_CONFIGS . '/' . $shopConfigId, $sendHeader);
     }
 
-    public static function shopConfigDelete($shopConfig, $sendHeader = false) {
+    public function shopConfigDelete($shopConfig, $sendHeader = false) {
         return self::returnAbsolutePathOrRedirect(self::PATH_ADMIN_SHOP_CONFIGS . '/' . $shopConfig . '/delete', $sendHeader);
     }
 
-    public static function productList($sendHeader = false) {
+    public function productList($sendHeader = false) {
         return self::returnAbsolutePathOrRedirect(self::PATH_ADMIN_PRODUCTS, $sendHeader);
     }
 
-    public static function productAdd($sendHeader = false) {
+    public function productAdd($sendHeader = false) {
         return self::returnAbsolutePathOrRedirect(self::PATH_ADMIN_PRODUCTS_ADD, $sendHeader);
     }
 
-    public static function productEdit($productId, $sendHeader = false) {
+    public function productEdit($productId, $sendHeader = false) {
         return self::returnAbsolutePathOrRedirect(self::PATH_ADMIN_PRODUCTS . '/' . $productId, $sendHeader);
     }
 
-    public static function productDelete($productId, $sendHeader = false) {
+    public function productDelete($productId, $sendHeader = false) {
         return self::returnAbsolutePathOrRedirect(self::PATH_ADMIN_PRODUCTS . '/' . $productId . '/delete', $sendHeader);
     }
 

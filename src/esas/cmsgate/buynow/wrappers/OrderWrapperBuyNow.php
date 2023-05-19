@@ -2,7 +2,7 @@
 
 namespace esas\cmsgate\buynow\wrappers;
 
-use esas\cmsgate\bridge\dao\OrderCache;
+use esas\cmsgate\bridge\dao\Order;
 use esas\cmsgate\buynow\dao\OrderDataBuyNow;
 use esas\cmsgate\bridge\wrappers\OrderWrapperCached;
 use esas\cmsgate\OrderStatus;
@@ -17,12 +17,12 @@ class OrderWrapperBuyNow extends OrderWrapperCached
     protected $orderData;
 
     /**
-     * @param $orderCache OrderCache
+     * @param $order Order
      */
-    public function __construct($orderCache)
+    public function __construct($order)
     {
-        parent::__construct($orderCache);
-        $this->orderData = $orderCache->getOrderData();
+        parent::__construct($order);
+        $this->orderData = $order->getOrderData();
     }
 
     /**

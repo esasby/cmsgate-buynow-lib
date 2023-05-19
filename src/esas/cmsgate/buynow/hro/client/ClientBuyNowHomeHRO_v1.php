@@ -3,7 +3,7 @@
 
 namespace esas\cmsgate\buynow\hro\client;
 
-use esas\cmsgate\buynow\BridgeConnectorBuyNow;
+
 use esas\cmsgate\buynow\dao\BasketBuyNow;
 use esas\cmsgate\buynow\dao\BasketItemBuyNow;
 use esas\cmsgate\buynow\protocol\RequestParamsBuyNow;

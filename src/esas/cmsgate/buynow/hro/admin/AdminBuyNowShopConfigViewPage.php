@@ -80,14 +80,14 @@ class AdminBuyNowShopConfigViewPage extends AdminBuyNowPage implements AddOrUpda
 
     public function elementShopConfigEditForm() {
         $form = FormHROFactory::findBuilder()
-            ->setId(SessionServiceBridge::fromRegistry()::getShopConfigUUID() != null ? AdminViewFieldsBuyNow::SHOP_CONFIG_EDIT_FORM : AdminViewFieldsBuyNow::SHOP_CONFIG_ADD_FORM)
-            ->setAction(RedirectServiceBuyNow::shopConfigList())
+            ->setId(SessionServiceBridge::fromRegistry()->getShopConfigUUID() != null ? AdminViewFieldsBuyNow::SHOP_CONFIG_EDIT_FORM : AdminViewFieldsBuyNow::SHOP_CONFIG_ADD_FORM)
+            ->setAction(RedirectServiceBuyNow::fromRegistry()->shopConfigList())
             ->setManagedFields($this->managedFields)
             ->addButtonSave()
-            ->addButtonCancel(RedirectServiceBuyNow::shopConfigList());
+            ->addButtonCancel(RedirectServiceBuyNow::fromRegistry()->shopConfigList());
         if ($this->isEditMode()) {
-            $form->addButtonDelete(RedirectServiceBuyNow::shopConfigDelete(SessionServiceBridge::fromRegistry()::getShopConfigUUID()));
-            $form->addHiddenInput(RequestParamsBuyNow::SHOP_CONFIG_ID, SessionServiceBridge::fromRegistry()::getShopConfigUUID());
+            $form->addButtonDelete(RedirectServiceBuyNow::fromRegistry()->shopConfigDelete(SessionServiceBridge::fromRegistry()->getShopConfigUUID()));
+            $form->addHiddenInput(RequestParamsBuyNow::SHOP_CONFIG_ID, SessionServiceBridge::fromRegistry()->getShopConfigUUID());
         }
         return $form->build();
     }
@@ -100,7 +100,7 @@ class AdminBuyNowShopConfigViewPage extends AdminBuyNowPage implements AddOrUpda
                 ->setMainLabel(AdminViewFieldsBuyNow::SHOP_CONFIG_LINKED_BASKET_LIST)
                 ->setTableHeaderColumns(['Id', 'Name', 'Active', 'Ask name', 'Ask phone', 'Ask email', 'Checkout counter', 'Created At'])
                 ->setTableBody($this->elementLinkedBasketsTableBody())
-                ->addFooterButtonAdd(RedirectServiceBuyNow::basketAdd())
+                ->addFooterButtonAdd(RedirectServiceBuyNow::fromRegistry()->basketAdd())
                 ->build();
     }
 
@@ -118,7 +118,7 @@ class AdminBuyNowShopConfigViewPage extends AdminBuyNowPage implements AddOrUpda
     public function elementLinkedBasketsTableRow($basket, $rowId) {
         return element::tr(
             attribute::clazz("position-relative"),
-            element::td(TablePreset::elementTdStretchedLink($basket->getId(), RedirectServiceBuyNow::basketEdit($basket->getId()))),
+            element::td(TablePreset::elementTdStretchedLink($basket->getId(), RedirectServiceBuyNow::fromRegistry()->basketEdit($basket->getId()))),
             element::td($basket->getName()),
             element::td(TablePreset::elementTdSwitch($basket->isActive())),
             element::td(TablePreset::elementTdSwitch($basket->isAskFIO())),

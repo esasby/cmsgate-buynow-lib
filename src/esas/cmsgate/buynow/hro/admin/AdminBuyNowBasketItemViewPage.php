@@ -4,9 +4,10 @@
 namespace esas\cmsgate\buynow\hro\admin;
 
 
-use esas\cmsgate\buynow\BridgeConnectorBuyNow;
+
 use esas\cmsgate\buynow\dao\BasketItemBuyNow;
 use esas\cmsgate\buynow\dao\ProductBuyNow;
+use esas\cmsgate\buynow\dao\ProductBuyNowRepository;
 use esas\cmsgate\buynow\protocol\RequestParamsBuyNow;
 use esas\cmsgate\buynow\view\admin\AdminViewFieldsBuyNow;
 use esas\cmsgate\buynow\service\RedirectServiceBuyNow;
@@ -75,12 +76,12 @@ class AdminBuyNowBasketItemViewPage extends AdminBuyNowPage implements AddOrUpda
     private function elementBasketItemEditForm() {
         $formHRO = FormHROFactory::findBuilder()
             ->setId($this->isEditMode() ? AdminViewFieldsBuyNow::BASKET_ITEM_EDIT_FORM : AdminViewFieldsBuyNow::BASKET_ITEM_ADD_FORM)
-            ->setAction(RedirectServiceBuyNow::basketItemAdd($this->basketItem->getBasketId()))
+            ->setAction(RedirectServiceBuyNow::fromRegistry()->basketItemAdd($this->basketItem->getBasketId()))
             ->setManagedFields($this->basketItemFields)
             ->addButtonSave()
-            ->addButtonCancel(RedirectServiceBuyNow::basketEdit($this->basketItem->getBasketId()));
+            ->addButtonCancel(RedirectServiceBuyNow::fromRegistry()->basketEdit($this->basketItem->getBasketId()));
         if ($this->isEditMode()) {
-            $formHRO->addButtonDelete(RedirectServiceBuyNow::basketItemDelete($this->basketItem->getBasketId(), $this->basketItem->getId()));
+            $formHRO->addButtonDelete(RedirectServiceBuyNow::fromRegistry()->basketItemDelete($this->basketItem->getBasketId(), $this->basketItem->getId()));
             $formHRO->addHiddenInput(RequestParamsBuyNow::BASKET_ITEM_ID, $this->basketItem->getId());
 
         }
@@ -93,7 +94,7 @@ class AdminBuyNowBasketItemViewPage extends AdminBuyNowPage implements AddOrUpda
     public function getProductsList() {
         $options = array();
         /** @var ProductBuyNow[] $products */
-        $products = BridgeConnectorBuyNow::fromRegistry()->getBuyNowProductRepository()->getByMerchantId(SessionServiceBridge::fromRegistry()::getMerchantUUID());
+        $products = ProductBuyNowRepository::fromRegistry()->getByMerchantId(SessionServiceBridge::fromRegistry()->getMerchantUUID());
         foreach ($products as $product) {
             $options[] = new ListOption($product->getId(), $product->getName() . ' #' . $product->getSku() . '');
         }

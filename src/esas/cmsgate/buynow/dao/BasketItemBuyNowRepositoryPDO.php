@@ -1,8 +1,10 @@
 <?php
+
 namespace esas\cmsgate\buynow\dao;
 
-use esas\cmsgate\buynow\BridgeConnectorBuyNow;
+
 use esas\cmsgate\Registry;
+use esas\cmsgate\service\PDOService;
 use esas\cmsgate\utils\StringUtils;
 use PDO;
 
@@ -21,13 +23,14 @@ class BasketItemBuyNowRepositoryPDO extends BasketItemBuyNowRepository
     const COLUMN_MAX_COUNT = 'max_count';
     const COLUMN_CREATED_AT = 'created_at';
 
-    public function __construct($pdo, $table = null)
-    {
+    public function __construct($table = null) {
         parent::__construct();
-        $this->pdo = $pdo;
-        if ($table != null)
-            $this->table = $table;
-        else
+        $this->table = $table;
+    }
+
+    public function postConstruct() {
+        $this->pdo = PDOService::fromRegistry()->getPDO(BasketItemBuyNowRepository::class);
+        if ($this->table == null)
             $this->table = Registry::getRegistry()->getModuleDescriptor()->getCmsAndPaysystemName()
                 . '_basket_item';
     }
@@ -74,7 +77,7 @@ class BasketItemBuyNowRepositoryPDO extends BasketItemBuyNowRepository
         ]);
         $basketItem = null;
         while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
-            $basketItem =  $this->createBasketItemObject($row);
+            $basketItem = $this->createBasketItemObject($row);
         }
         return $basketItem;
     }
@@ -87,7 +90,7 @@ class BasketItemBuyNowRepositoryPDO extends BasketItemBuyNowRepository
         ]);
         $items = array();
         while ($row = $stmt->fetch(PDO::FETCH_LAZY)) {
-            $items[] =  $this->createBasketItemObject($row);
+            $items[] = $this->createBasketItemObject($row);
         }
         return $items;
     }
@@ -121,13 +124,12 @@ class BasketItemBuyNowRepositoryPDO extends BasketItemBuyNowRepository
         $basketItem
             ->setId($row[self::COLUMN_ID])
             ->setBasketId($row[self::COLUMN_BASKET_ID])
-            ->setBasket(BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->getById($row[self::COLUMN_BASKET_ID]))
+            ->setBasket(BasketBuyNowRepository::fromRegistry()->getById($row[self::COLUMN_BASKET_ID]))
             ->setProductId($row[self::COLUMN_PRODUCT_ID])
-            ->setProduct(BridgeConnectorBuyNow::fromRegistry()->getBuyNowProductRepository()->getById($row[self::COLUMN_PRODUCT_ID]))
+            ->setProduct(ProductBuyNowRepository::fromRegistry()->getById($row[self::COLUMN_PRODUCT_ID]))
             ->setCount($row[self::COLUMN_COUNT])
             ->setMaxCount($row[self::COLUMN_MAX_COUNT])
-            ->setCreatedAt($row[self::COLUMN_CREATED_AT])
-        ;
+            ->setCreatedAt($row[self::COLUMN_CREATED_AT]);
         return $basketItem;
     }
 

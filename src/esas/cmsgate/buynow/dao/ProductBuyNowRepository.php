@@ -1,22 +1,16 @@
 <?php
 namespace esas\cmsgate\buynow\dao;
 
-use esas\cmsgate\utils\Logger;
+use esas\cmsgate\dao\Repository;
+use esas\cmsgate\Registry;
 
-abstract class ProductBuyNowRepository
+abstract class ProductBuyNowRepository extends Repository
 {
     /**
-     * @var Logger
+     * @inheritDoc
      */
-    protected $logger;
-
-    /**
-     * ProductBuyNowRepository constructor.
-     */
-    public function __construct()
-    {
-        $this->logger = Logger::getLogger(get_class($this));
-
+    public static function fromRegistry() {
+        return Registry::getRegistry()->getService(ProductBuyNowRepository::class);
     }
 
     /**

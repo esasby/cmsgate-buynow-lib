@@ -9,6 +9,8 @@
 namespace esas\cmsgate\buynow;
 
 use esas\cmsgate\bridge\CmsConnectorBridge;
+use esas\cmsgate\bridge\service\OrderService;
+use esas\cmsgate\buynow\dao\BasketBuyNowRepository;
 use esas\cmsgate\buynow\dao\OrderDataBuyNow;
 use esas\cmsgate\buynow\lang\LocaleLoaderBuyNow;
 use esas\cmsgate\buynow\wrappers\OrderWrapperBuyNow;
@@ -38,8 +40,8 @@ class CmsConnectorByNow extends CmsConnectorBridge
         return new CmsConnectorDescriptor(
             "cmsgate-buynow-lib",
             new VersionDescriptor(
-                "v2.1.3",
-                "2023-05-05"
+                "v2.2.0",
+                "2023-05-19"
             ),
             "Cmsgate BuyNow connector",
             "https://github.com/esasby/cmsgate-buynow-lib",
@@ -55,17 +57,13 @@ class CmsConnectorByNow extends CmsConnectorBridge
 
     public function getReturnToShopSuccessURL()
     {
-        /** @var OrderDataBuyNow $orderData */
-        $orderData = BridgeConnectorBuyNow::fromRegistry()->getOrderCacheService()->getSessionOrderCache()->getOrderData();
-        $basket = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->getById($orderData->getBasketId());
+        $basket = BasketBuyNowRepository::fromRegistry()->getById(OrderService::fromRegistry()->getSessionOrder()->getBasketId());
         return $basket->getReturnUrl();
     }
 
     public function getReturnToShopFailedURL()
     {
-        /** @var OrderDataBuyNow $orderData */
-        $orderData = BridgeConnectorBuyNow::fromRegistry()->getOrderCacheService()->getSessionOrderCache()->getOrderData();
-        $basket = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketRepository()->getById($orderData->getBasketId());
+        $basket = BasketBuyNowRepository::fromRegistry()->getById(OrderService::fromRegistry()->getSessionOrder()->getBasketId());
         return $basket->getReturnUrl();
     }
 }

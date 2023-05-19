@@ -98,12 +98,12 @@ class AdminBuyNowProductViewPage extends AdminBuyNowPage implements AddOrUpdateP
     private function elementProductEditForm() {
         $formHRO = FormHROFactory::findBuilder()
             ->setId($this->isEditMode() ? AdminViewFieldsBuyNow::PRODUCT_EDIT_FORM : AdminViewFieldsBuyNow::PRODUCT_ADD_FORM)
-            ->setAction(RedirectServiceBuyNow::productList())
+            ->setAction(RedirectServiceBuyNow::fromRegistry()->productList())
             ->setManagedFields($this->productFields)
             ->addButtonSave()
-            ->addButtonCancel(RedirectServiceBuyNow::productList());
+            ->addButtonCancel(RedirectServiceBuyNow::fromRegistry()->productList());
         if ($this->isEditMode()) {
-            $formHRO->addButtonDelete(RedirectServiceBuyNow::productDelete($this->product->getId()));
+            $formHRO->addButtonDelete(RedirectServiceBuyNow::fromRegistry()->productDelete($this->product->getId()));
             $formHRO->addHiddenInput(RequestParamsBuyNow::PRODUCT_ID, $this->product->getId());
         }
         return $formHRO->build();
@@ -134,7 +134,7 @@ class AdminBuyNowProductViewPage extends AdminBuyNowPage implements AddOrUpdateP
     public function elementLinkedBasketsTableRow($basket, $rowId) {
         return element::tr(
             attribute::clazz("position-relative"),
-            element::td(TablePreset::elementTdStretchedLink($basket->getId(), RedirectServiceBuyNow::basketEdit($basket->getId()))),
+            element::td(TablePreset::elementTdStretchedLink($basket->getId(), RedirectServiceBuyNow::fromRegistry()->basketEdit($basket->getId()))),
             element::td($basket->getName()),
             element::td(TablePreset::elementTdSwitch($basket->isActive())),
             element::td(TablePreset::elementTdSwitch($basket->isAskFIO())),

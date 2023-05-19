@@ -4,8 +4,9 @@
 namespace esas\cmsgate\buynow\hro\admin;
 
 
+use esas\cmsgate\bridge\dao\ShopConfigRepository;
 use esas\cmsgate\buynow\dao\ShopConfigBuyNow;
-use esas\cmsgate\buynow\BridgeConnectorBuyNow;
+
 use esas\cmsgate\buynow\dao\BasketBuyNow;
 use esas\cmsgate\buynow\dao\BasketItemBuyNow;
 use esas\cmsgate\buynow\protocol\RequestParamsBuyNow;
@@ -23,12 +24,18 @@ use esas\cmsgate\utils\htmlbuilder\presets\ScriptsPreset;
 use esas\cmsgate\bridge\service\SessionServiceBridge;
 use esas\cmsgate\view\admin\AdminViewFields;
 use esas\cmsgate\view\admin\fields\ConfigFieldCheckbox;
+use esas\cmsgate\view\admin\fields\ConfigFieldDateTime;
 use esas\cmsgate\view\admin\fields\ConfigFieldList;
+use esas\cmsgate\view\admin\fields\ConfigFieldNumber;
 use esas\cmsgate\view\admin\fields\ConfigFieldText;
 use esas\cmsgate\view\admin\fields\ConfigFieldTextarea;
 use esas\cmsgate\view\admin\fields\ListOption;
 use esas\cmsgate\view\admin\ManagedFields;
+use esas\cmsgate\view\admin\validators\ValidatorDateTime;
+use esas\cmsgate\view\admin\validators\ValidatorDateTimeLocal;
+use esas\cmsgate\view\admin\validators\ValidatorInteger;
 use esas\cmsgate\view\admin\validators\ValidatorNotEmpty;
+use esas\cmsgate\view\admin\validators\ValidatorNumeric;
 
 class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements AddOrUpdatePage
 {
@@ -56,10 +63,12 @@ class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements AddOrUpdatePa
             ->addField(new ConfigFieldText(RequestParamsBuyNow::BASKET_NAME, 'Name', '', true, new ValidatorNotEmpty(), false))
             ->addField(new ConfigFieldTextarea(RequestParamsBuyNow::BASKET_DESCRIPTION, 'Description', '', true, null, 20, 4))
             ->addField(new ConfigFieldList(RequestParamsBuyNow::BASKET_SHOP_CONFIG_ID, 'Shop config', '', true, $this->getShopConfigsList()))
-            ->addField(new ConfigFieldCheckbox(RequestParamsBuyNow::BASKET_ACTIVE, 'Active?', '', true, null))
-            ->addField(new ConfigFieldCheckbox(RequestParamsBuyNow::BASKET_ASK_NAME, 'Ask name?', '', true, null))
-            ->addField(new ConfigFieldCheckbox(RequestParamsBuyNow::BASKET_ASK_EMAIL, 'Ask email?', '', true, null))
-            ->addField(new ConfigFieldCheckbox(RequestParamsBuyNow::BASKET_ASK_PHONE, 'Ask phone?', '', true, null))
+            ->addField(new ConfigFieldCheckbox(RequestParamsBuyNow::BASKET_ACTIVE, null, '', true, null))
+            ->addField(new ConfigFieldNumber(RequestParamsBuyNow::BASKET_MAX_PAID_COUNT, null, '', true, new ValidatorInteger(0, 9999999), 0 , 9999999))
+            ->addField(new ConfigFieldDateTime(RequestParamsBuyNow::BASKET_EXPIRES_AT, null, '', false, new ValidatorDateTimeLocal(true)))
+            ->addField(new ConfigFieldCheckbox(RequestParamsBuyNow::BASKET_ASK_NAME, null, '', true, null))
+            ->addField(new ConfigFieldCheckbox(RequestParamsBuyNow::BASKET_ASK_EMAIL, null, '', true, null))
+            ->addField(new ConfigFieldCheckbox(RequestParamsBuyNow::BASKET_ASK_PHONE, null, '', true, null))
             ->addField(new ConfigFieldText(RequestParamsBuyNow::BASKET_RETURN_URL, 'Return url', '', true, new ValidatorNotEmpty()))
             ->addField(new ConfigFieldText(RequestParamsBuyNow::CLIENT_UI_CSS, 'UI css url', '', true, null));
     }
@@ -86,6 +95,8 @@ class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements AddOrUpdatePa
             $this->basketFields->getField(RequestParamsBuyNow::BASKET_ASK_PHONE)->setValue($basket->isAskPhone());
             $this->basketFields->getField(RequestParamsBuyNow::BASKET_RETURN_URL)->setValue($basket->getReturnUrl());
             $this->basketFields->getField(RequestParamsBuyNow::CLIENT_UI_CSS)->setValue($basket->getClientUICss());
+            $this->basketFields->getField(RequestParamsBuyNow::BASKET_MAX_PAID_COUNT)->setValue($basket->getPaidMaxCount());
+            $this->basketFields->getField(RequestParamsBuyNow::BASKET_EXPIRES_AT)->setValue($basket->getExpiresAt()->format('Y-m-d H:i'));
         }
         return $this;
     }
@@ -124,12 +135,12 @@ class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements AddOrUpdatePa
     private function elementBasketEditForm() {
         $formHRO = FormHROFactory::findBuilder()
             ->setId($this->isEditMode() ? AdminViewFieldsBuyNow::BASKET_EDIT_FORM : AdminViewFieldsBuyNow::BASKET_ADD_FORM)
-            ->setAction(RedirectServiceBuyNow::basketList())
+            ->setAction(RedirectServiceBuyNow::fromRegistry()->basketList())
             ->setManagedFields($this->basketFields)
             ->addButtonSave()
-            ->addButtonCancel(RedirectServiceBuyNow::basketList());
+            ->addButtonCancel(RedirectServiceBuyNow::fromRegistry()->basketList());
         if ($this->isEditMode()) {
-            $formHRO->addButtonDelete(RedirectServiceBuyNow::basketDelete($this->basket->getId()));
+            $formHRO->addButtonDelete(RedirectServiceBuyNow::fromRegistry()->basketDelete($this->basket->getId()));
             $formHRO->addHiddenInput(RequestParamsBuyNow::BASKET_ID, $this->basket->getId());
         }
         return $formHRO->build();
@@ -141,7 +152,7 @@ class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements AddOrUpdatePa
     public function getShopConfigsList() {
         $options = array();
         /** @var ShopConfigBuyNow[] $shopConfigs */
-        $shopConfigs = BridgeConnectorBuyNow::fromRegistry()->getShopConfigRepository()->getByMerchantId(SessionServiceBridge::fromRegistry()::getMerchantUUID());
+        $shopConfigs = ShopConfigRepository::fromRegistry()->getByMerchantId(SessionServiceBridge::fromRegistry()->getMerchantUUID());
         foreach ($shopConfigs as $shopConfig) {
             $options[] = new ListOption($shopConfig->getUuid(), $shopConfig->getName());
         }
@@ -160,7 +171,7 @@ class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements AddOrUpdatePa
                 ->setMainLabel(AdminViewFieldsBuyNow::BASKET_ITEM_LIST)
                 ->setTableHeaderColumns(['Id', 'Product', 'Image', 'Price', 'Init Count', 'Max count', 'Created At', 'Actions'])
                 ->setTableBody($this->elementBasketItemsTableBody())
-                ->addFooterButtonAdd(RedirectServiceBuyNow::basketItemAdd($this->basket->getId()))
+                ->addFooterButtonAdd(RedirectServiceBuyNow::fromRegistry()->basketItemAdd($this->basket->getId()))
                 ->build();
     }
 
@@ -178,9 +189,9 @@ class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements AddOrUpdatePa
     public function elementBasketItemsTableRow($basketItem, $rowId) {
         return element::tr(
             attribute::clazz("position-relative"),
-//            element::td(TablePreset::elementTdStretchedLink($basketItem->getId(), RedirectServiceBuyNow::basketItemEdit($basketItem->getBasketId(), $basketItem->getId()))),
-            element::td(bootstrap::elementAHrefNoDecoration($basketItem->getId(), RedirectServiceBuyNow::basketItemEdit($basketItem->getBasketId(), $basketItem->getId()))),
-            element::td(bootstrap::elementAHrefNoDecoration($basketItem->getProduct()->getName(), RedirectServiceBuyNow::productEdit($basketItem->getProductId()))),
+//            element::td(TablePreset::elementTdStretchedLink($basketItem->getId(), RedirectServiceBuyNow::fromRegistry()->basketItemEdit($basketItem->getBasketId(), $basketItem->getId()))),
+            element::td(bootstrap::elementAHrefNoDecoration($basketItem->getId(), RedirectServiceBuyNow::fromRegistry()->basketItemEdit($basketItem->getBasketId(), $basketItem->getId()))),
+            element::td(bootstrap::elementAHrefNoDecoration($basketItem->getProduct()->getName(), RedirectServiceBuyNow::fromRegistry()->productEdit($basketItem->getProductId()))),
             element::td(element::img(
                 attribute::src($basketItem->getProduct()->getImage()),
                 attribute::clazz('img-thumbnail'),
@@ -192,7 +203,7 @@ class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements AddOrUpdatePa
             element::td($basketItem->getCreatedAt()),
             element::td(bootstrap::elementAButton(
                 Translator::fromRegistry()->translate(AdminViewFields::DELETE),
-                RedirectServiceBuyNow::basketItemDelete($basketItem->getBasketId(), $basketItem->getId()),
+                RedirectServiceBuyNow::fromRegistry()->basketItemDelete($basketItem->getBasketId(), $basketItem->getId()),
                 'btn-outline-danger' ))
         );
     }
@@ -210,7 +221,7 @@ class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements AddOrUpdatePa
             return '';
         return CopyToClipboardPanelHROFactory::findBuilder()
             ->setLabelId(AdminViewFieldsBuyNow::CLIENT_BASKET_LINK)
-            ->setValue(RedirectServiceBuyNow::clientBasketView($this->basket->getId()))
+            ->setValue(RedirectServiceBuyNow::fromRegistry()->clientBasketView($this->basket->getId()))
             ->build() . element::br();
     }
 }

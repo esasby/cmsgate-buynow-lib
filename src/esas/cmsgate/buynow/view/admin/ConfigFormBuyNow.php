@@ -16,7 +16,7 @@ class ConfigFormBuyNow extends ConfigFormBridge
      * @param $managedFields ManagedFields
      */
     public function __construct($managedFields) {
-        parent::__construct($managedFields, AdminViewFields::CONFIG_FORM_COMMON, RedirectServiceBuyNow::shopConfigList());
+        parent::__construct($managedFields, AdminViewFields::CONFIG_FORM_COMMON, RedirectServiceBuyNow::fromRegistry()->shopConfigList());
     }
 
 }

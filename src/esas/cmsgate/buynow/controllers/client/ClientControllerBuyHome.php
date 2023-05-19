@@ -5,7 +5,7 @@ namespace esas\cmsgate\buynow\controllers\client;
 
 
 use esas\cmsgate\buynow\dao\OrderDataBuyNow;
-use esas\cmsgate\buynow\BridgeConnectorBuyNow;
+
 use esas\cmsgate\buynow\hro\client\ClientBuyNowHomeHROFactory;
 use esas\cmsgate\buynow\properties\PropertiesBuyNow;
 use esas\cmsgate\epos\controllers\ControllerEposCompletionPanel;

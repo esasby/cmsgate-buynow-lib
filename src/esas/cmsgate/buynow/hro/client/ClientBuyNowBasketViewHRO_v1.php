@@ -4,10 +4,12 @@
 namespace esas\cmsgate\buynow\hro\client;
 
 use esas\cmsgate\bridge\properties\RecaptchaProperties;
-use esas\cmsgate\buynow\BridgeConnectorBuyNow;
+
 use esas\cmsgate\buynow\dao\BasketBuyNow;
 use esas\cmsgate\buynow\dao\BasketItemBuyNow;
+use esas\cmsgate\buynow\dao\BasketItemBuyNowRepository;
 use esas\cmsgate\buynow\protocol\RequestParamsBuyNow;
+use esas\cmsgate\buynow\service\BasketServiceBuyNow;
 use esas\cmsgate\buynow\view\client\ClientViewFieldsBuyNow;
 use esas\cmsgate\buynow\service\RedirectServiceBuyNow;
 use esas\cmsgate\hro\cards\CardHROFactory;
@@ -37,6 +39,8 @@ class ClientBuyNowBasketViewHRO_v1 extends ClientBuyNowPage implements ClientBuy
      */
     private $basketItems;
 
+    private $accessible = true;
+
     /**
      * @var ManagedFields
      */
@@ -48,7 +52,7 @@ class ClientBuyNowBasketViewHRO_v1 extends ClientBuyNowPage implements ClientBuy
     public function setBasket($basket) {
         $this->basket = $basket;
         if ($this->basket->getId() != null) {
-            $this->basketItems = BridgeConnectorBuyNow::fromRegistry()->getBuyNowBasketItemRepository()->getByBasketIdOnlyActiveProducts($basket->getId());
+            $this->basketItems = BasketItemBuyNowRepository::fromRegistry()->getByBasketIdOnlyActiveProducts($basket->getId());
         }
         $this->managedFields = new ManagedFields();
         if ($this->basket->isAskFIO())
@@ -80,16 +84,16 @@ class ClientBuyNowBasketViewHRO_v1 extends ClientBuyNowPage implements ClientBuy
     }
 
     public function elementPageContent() {
-        return
+        return $this->accessible ?
             $this->elementBasketDescription() .
             element::form(
-                attribute::action(RedirectServiceBuyNow::clientBasketConfirm($this->basket->getId())),
+                attribute::action(RedirectServiceBuyNow::fromRegistry()->clientBasketConfirm($this->basket->getId())),
                 attribute::clazz("google-recaptcha-form"),
                 attribute::method("post"),
                 attribute::enctype("multipart/form-data"),
                 bootstrap::elementInputHidden(RequestParamsBuyNow::BASKET_ID, $this->basket->getId()),
                 $this->elementFormBody()
-            );
+            ) : "";
     }
 
     public function elementPageErrorContent() {
@@ -194,5 +198,10 @@ class ClientBuyNowBasketViewHRO_v1 extends ClientBuyNowPage implements ClientBuy
 
     public function getFormFields() {
         return $this->managedFields;
+    }
+
+    public function setAccessible($isAccessible) {
+        $this->accessible = $isAccessible;
+        return $this;
     }
 }
