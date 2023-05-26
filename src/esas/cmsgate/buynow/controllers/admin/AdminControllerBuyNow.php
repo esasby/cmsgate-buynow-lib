@@ -6,6 +6,7 @@ namespace esas\cmsgate\buynow\controllers\admin;
 
 use esas\cmsgate\bridge\controllers\ControllerBridgeLogin;
 use esas\cmsgate\bridge\controllers\ControllerBridgeLogout;
+use esas\cmsgate\bridge\service\MerchantService;
 use esas\cmsgate\buynow\hro\admin\AdminBuyNowExceptionPage;
 use esas\cmsgate\buynow\service\RedirectServiceBuyNow;
 use esas\cmsgate\controllers\Controller;
@@ -41,9 +42,14 @@ class AdminControllerBuyNow extends Controller
             }
             $controller->process();
         } catch (Throwable $e) {
-            AdminBuyNowExceptionPage::builder()->buildAndDisplay();
+            $this->onException();
         } catch (Exception $e) {
-            AdminBuyNowExceptionPage::builder()->buildAndDisplay();
+            $this->onException();
         }
+    }
+
+    public function onException() {
+        MerchantService::fromRegistry()->checkAuth(true);
+        AdminBuyNowExceptionPage::builder()->buildAndDisplay();
     }
 }

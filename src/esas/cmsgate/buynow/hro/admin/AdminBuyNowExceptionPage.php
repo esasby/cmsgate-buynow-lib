@@ -14,7 +14,7 @@ class AdminBuyNowExceptionPage extends AdminBuyNowPage
 
 
     public function getNavItemId() {
-        return RedirectServiceBuyNow::PATH_ADMIN_PRODUCTS;
+        return RedirectServiceBuyNow::fromRegistry()->mainPage(false);
     }
 
     public static function builder() {

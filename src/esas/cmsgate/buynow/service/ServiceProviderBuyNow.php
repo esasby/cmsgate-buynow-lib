@@ -28,7 +28,7 @@ class ServiceProviderBuyNow extends ServiceProviderBridge
     public function getServiceArray() {
         $services = parent::getServiceArray();
         $services[CmsAuthService::class] = new CmsAuthServiceBuyNow();
-        $services[CryptServiceImpl::class] = new CryptServiceImpl('/opt/cmsgate/storage');
+        $services[CryptServiceImpl::class] = new CryptServiceImpl();
         $services[OrderService::class] = new OrderServiceBuyNow();
         $services[MerchantService::class] = new MerchantServiceBuyNow();
         $services[RedirectService::class] = new RedirectServiceBuyNow();
