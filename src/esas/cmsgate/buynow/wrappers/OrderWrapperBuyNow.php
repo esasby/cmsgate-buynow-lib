@@ -3,9 +3,8 @@
 namespace esas\cmsgate\buynow\wrappers;
 
 use esas\cmsgate\bridge\dao\Order;
-use esas\cmsgate\buynow\dao\OrderDataBuyNow;
 use esas\cmsgate\bridge\wrappers\OrderWrapperCached;
-use esas\cmsgate\OrderStatus;
+use esas\cmsgate\buynow\dao\OrderDataBuyNow;
 
 class OrderWrapperBuyNow extends OrderWrapperCached
 {

@@ -7,10 +7,9 @@ namespace esas\cmsgate\buynow\service;
 use DateTime;
 use esas\cmsgate\bridge\dao\ShopConfigRepository;
 use esas\cmsgate\bridge\service\OrderService;
+use esas\cmsgate\bridge\service\SessionServiceBridge;
 use esas\cmsgate\bridge\service\ShopConfigService;
 use esas\cmsgate\buynow\dao\ShopConfigBuyNow;
-
-use esas\cmsgate\bridge\service\SessionServiceBridge;
 use esas\cmsgate\buynow\dao\ShopConfigBuyNowRepository;
 use esas\cmsgate\Registry;
 

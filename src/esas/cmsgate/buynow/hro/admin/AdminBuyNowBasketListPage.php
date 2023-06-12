@@ -5,10 +5,9 @@ namespace esas\cmsgate\buynow\hro\admin;
 
 
 use esas\cmsgate\bridge\dao\ShopConfigRepository;
-
 use esas\cmsgate\buynow\dao\BasketBuyNow;
-use esas\cmsgate\buynow\view\admin\AdminViewFieldsBuyNow;
 use esas\cmsgate\buynow\service\RedirectServiceBuyNow;
+use esas\cmsgate\buynow\view\admin\AdminViewFieldsBuyNow;
 use esas\cmsgate\hro\tables\DataListHROFactory;
 use esas\cmsgate\utils\htmlbuilder\Attributes as attribute;
 use esas\cmsgate\utils\htmlbuilder\Elements as element;

@@ -4,7 +4,6 @@ namespace esas\cmsgate\buynow\dao;
 use esas\cmsgate\dao\Repository;
 use esas\cmsgate\dao\SingleTableRepository;
 use esas\cmsgate\Registry;
-use esas\cmsgate\utils\Logger;
 
 abstract class BasketItemBuyNowRepository extends Repository implements SingleTableRepository
 {

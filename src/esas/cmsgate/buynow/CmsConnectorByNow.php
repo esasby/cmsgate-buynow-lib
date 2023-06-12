@@ -11,7 +11,6 @@ namespace esas\cmsgate\buynow;
 use esas\cmsgate\bridge\CmsConnectorBridge;
 use esas\cmsgate\bridge\service\OrderService;
 use esas\cmsgate\buynow\dao\BasketBuyNowRepository;
-use esas\cmsgate\buynow\dao\OrderDataBuyNow;
 use esas\cmsgate\buynow\lang\LocaleLoaderBuyNow;
 use esas\cmsgate\buynow\wrappers\OrderWrapperBuyNow;
 use esas\cmsgate\descriptors\CmsConnectorDescriptor;
@@ -40,8 +39,8 @@ class CmsConnectorByNow extends CmsConnectorBridge
         return new CmsConnectorDescriptor(
             "cmsgate-buynow-lib",
             new VersionDescriptor(
-                "v2.2.1",
-                "2023-05-19"
+                "v2.2.2",
+                "2023-06-12"
             ),
             "Cmsgate BuyNow connector",
             "https://github.com/esasby/cmsgate-buynow-lib",

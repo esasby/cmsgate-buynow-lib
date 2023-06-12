@@ -4,9 +4,9 @@ namespace esas\cmsgate\buynow\dao;
 
 use DateTime;
 use esas\cmsgate\bridge\dao\ShopConfigRepository;
-
 use esas\cmsgate\Registry;
 use esas\cmsgate\service\PDOService;
+use esas\cmsgate\utils\DateUtils;
 use esas\cmsgate\utils\StringUtils;
 use PDO;
 
@@ -69,7 +69,7 @@ class BasketBuyNowRepositoryPDO extends BasketBuyNowRepository
                     self::COLUMN_RETURN_URL => $basket->getReturnUrl(),
                     self::COLUMN_CLIENT_UI_CSS => $basket->getClientUICss(),
                     self::COLUMN_PAID_MAX_COUNT => $basket->getPaidMaxCount(),
-                    self::COLUMN_EXPIRES_AT => $basket->getExpiresAt()->format('Y-m-d H:i:s'),
+                    self::COLUMN_EXPIRES_AT => DateUtils::formatNotNull($basket->getExpiresAt(), 'Y-m-d H:i:s'),
                 ]);
                 return $uuid;
             }
@@ -89,11 +89,12 @@ class BasketBuyNowRepositoryPDO extends BasketBuyNowRepository
             self::COLUMN_RETURN_URL => $basket->getReturnUrl(),
             self::COLUMN_CLIENT_UI_CSS => $basket->getClientUICss(),
             self::COLUMN_PAID_MAX_COUNT => $basket->getPaidMaxCount(),
-            self::COLUMN_EXPIRES_AT => $basket->getExpiresAt()->format('Y-m-d H:i:s'),
+            self::COLUMN_EXPIRES_AT => DateUtils::formatNotNull($basket->getExpiresAt(), 'Y-m-d H:i:s') ,
         ]);
         $this->logger->info("Basket was saved by id[" . $uuid . "]");
         return $uuid;
     }
+
 
     public function getById($basketId) {
         $sql = "select * from $this->tableName where id = :id";

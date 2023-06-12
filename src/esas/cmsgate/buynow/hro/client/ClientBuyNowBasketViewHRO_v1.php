@@ -4,14 +4,12 @@
 namespace esas\cmsgate\buynow\hro\client;
 
 use esas\cmsgate\bridge\properties\RecaptchaProperties;
-
 use esas\cmsgate\buynow\dao\BasketBuyNow;
 use esas\cmsgate\buynow\dao\BasketItemBuyNow;
 use esas\cmsgate\buynow\dao\BasketItemBuyNowRepository;
 use esas\cmsgate\buynow\protocol\RequestParamsBuyNow;
-use esas\cmsgate\buynow\service\BasketServiceBuyNow;
-use esas\cmsgate\buynow\view\client\ClientViewFieldsBuyNow;
 use esas\cmsgate\buynow\service\RedirectServiceBuyNow;
+use esas\cmsgate\buynow\view\client\ClientViewFieldsBuyNow;
 use esas\cmsgate\hro\cards\CardHROFactory;
 use esas\cmsgate\hro\forms\FormFieldTextHROFactory;
 use esas\cmsgate\hro\shop\BasketItemHROFactory;

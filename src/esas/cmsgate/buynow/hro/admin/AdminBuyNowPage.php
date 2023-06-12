@@ -4,8 +4,8 @@
 namespace esas\cmsgate\buynow\hro\admin;
 
 use esas\cmsgate\buynow\properties\PropertiesBuyNow;
-use esas\cmsgate\buynow\view\admin\AdminViewFieldsBuyNow;
 use esas\cmsgate\buynow\service\RedirectServiceBuyNow;
+use esas\cmsgate\buynow\view\admin\AdminViewFieldsBuyNow;
 use esas\cmsgate\hro\pages\PageHRO;
 use esas\cmsgate\lang\Translator;
 use esas\cmsgate\Registry;

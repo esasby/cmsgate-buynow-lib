@@ -7,7 +7,7 @@ namespace esas\cmsgate\buynow\controllers\admin;
 use esas\cmsgate\bridge\dao\OrderRepository;
 use esas\cmsgate\bridge\dao\ShopConfigRepository;
 use esas\cmsgate\bridge\service\MerchantService;
-
+use esas\cmsgate\bridge\service\SessionServiceBridge;
 use esas\cmsgate\buynow\hro\admin\AdminBuyNowOrderListPage;
 use esas\cmsgate\buynow\hro\admin\AdminBuyNowOrderViewPage;
 use esas\cmsgate\buynow\service\RedirectServiceBuyNow;
@@ -15,7 +15,6 @@ use esas\cmsgate\controllers\Controller;
 use esas\cmsgate\Registry;
 use esas\cmsgate\utils\CMSGateException;
 use esas\cmsgate\utils\RequestUtils;
-use esas\cmsgate\bridge\service\SessionServiceBridge;
 use esas\cmsgate\utils\StringUtils;
 use Exception;
 use Throwable;

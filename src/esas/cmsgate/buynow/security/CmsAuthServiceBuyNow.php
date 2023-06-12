@@ -5,9 +5,9 @@ namespace esas\cmsgate\buynow\security;
 
 use esas\cmsgate\bridge\dao\ShopConfig;
 use esas\cmsgate\bridge\dao\ShopConfigRepository;
+use esas\cmsgate\bridge\security\CmsAuthService;
 use esas\cmsgate\buynow\dao\BasketBuyNowRepository;
 use esas\cmsgate\buynow\protocol\RequestParamsBuyNow;
-use esas\cmsgate\bridge\security\CmsAuthService;
 use esas\cmsgate\Registry;
 use esas\cmsgate\utils\CMSGateException;
 

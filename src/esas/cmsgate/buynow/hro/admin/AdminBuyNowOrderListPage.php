@@ -9,9 +9,8 @@ use esas\cmsgate\bridge\dao\ShopConfigRepository;
 use esas\cmsgate\buynow\dao\BasketBuyNowRepository;
 use esas\cmsgate\buynow\dao\OrderDataBuyNow;
 use esas\cmsgate\buynow\dao\ShopConfigBuyNow;
-
-use esas\cmsgate\buynow\view\admin\AdminViewFieldsBuyNow;
 use esas\cmsgate\buynow\service\RedirectServiceBuyNow;
+use esas\cmsgate\buynow\view\admin\AdminViewFieldsBuyNow;
 use esas\cmsgate\hro\tables\DataListHROFactory;
 use esas\cmsgate\lang\Translator;
 use esas\cmsgate\utils\htmlbuilder\Attributes as attribute;

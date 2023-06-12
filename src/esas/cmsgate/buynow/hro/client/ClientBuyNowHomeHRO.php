@@ -8,11 +8,31 @@
 
 namespace esas\cmsgate\buynow\hro\client;
 
-use esas\cmsgate\buynow\dao\BasketBuyNow;
 use esas\cmsgate\hro\HRO;
 use esas\cmsgate\utils\htmlbuilder\page\AdditionalCssPage;
-use esas\cmsgate\utils\htmlbuilder\page\SingleFormPage;
 
-interface ClientBuyNowHomeHRO extends HRO, AdditionalCssPage
-{
+interface ClientBuyNowHomeHRO extends HRO, AdditionalCssPage {
+    /**
+     * @param mixed $pageHeaderText
+     * @return ClientBuyNowHomeHRO
+     */
+    public function setPageHeaderText($pageHeaderText);
+
+    /**
+     * @param mixed $pageHeaderDetailsText
+     * @return ClientBuyNowHomeHRO
+     */
+    public function setPageHeaderDetailsText($pageHeaderDetailsText);
+
+    /**
+     * @param mixed $bodyText
+     * @return ClientBuyNowHomeHRO
+     */
+    public function setBodyText($bodyText);
+
+    /**
+     * @param $screenShot mixed
+     * @return ClientBuyNowHomeHRO
+     */
+    public function addScreenShot($screenShot) ;
 }

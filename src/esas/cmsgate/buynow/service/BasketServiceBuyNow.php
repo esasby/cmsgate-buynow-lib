@@ -5,7 +5,6 @@ namespace esas\cmsgate\buynow\service;
 
 
 use esas\cmsgate\bridge\service\SessionServiceBridge;
-
 use esas\cmsgate\buynow\controllers\admin\AdminControllerBuyNowProducts;
 use esas\cmsgate\buynow\dao\BasketBuyNow;
 use esas\cmsgate\buynow\dao\BasketBuyNowRepository;

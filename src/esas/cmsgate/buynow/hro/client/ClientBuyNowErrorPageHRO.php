@@ -8,10 +8,8 @@
 
 namespace esas\cmsgate\buynow\hro\client;
 
-use esas\cmsgate\buynow\dao\BasketBuyNow;
 use esas\cmsgate\hro\HRO;
 use esas\cmsgate\utils\htmlbuilder\page\AdditionalCssPage;
-use esas\cmsgate\utils\htmlbuilder\page\SingleFormPage;
 
 interface ClientBuyNowErrorPageHRO extends HRO, AdditionalCssPage
 {

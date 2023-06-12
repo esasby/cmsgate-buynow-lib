@@ -5,13 +5,13 @@ namespace esas\cmsgate\buynow\hro\admin;
 
 
 use esas\cmsgate\bridge\dao\ShopConfigRepository;
-use esas\cmsgate\buynow\dao\ShopConfigBuyNow;
-
+use esas\cmsgate\bridge\service\SessionServiceBridge;
 use esas\cmsgate\buynow\dao\BasketBuyNow;
 use esas\cmsgate\buynow\dao\BasketItemBuyNow;
+use esas\cmsgate\buynow\dao\ShopConfigBuyNow;
 use esas\cmsgate\buynow\protocol\RequestParamsBuyNow;
-use esas\cmsgate\buynow\view\admin\AdminViewFieldsBuyNow;
 use esas\cmsgate\buynow\service\RedirectServiceBuyNow;
+use esas\cmsgate\buynow\view\admin\AdminViewFieldsBuyNow;
 use esas\cmsgate\hro\forms\FormHROFactory;
 use esas\cmsgate\hro\panels\CopyToClipboardPanelHROFactory;
 use esas\cmsgate\hro\tables\DataListHROFactory;
@@ -21,7 +21,6 @@ use esas\cmsgate\utils\htmlbuilder\Elements as element;
 use esas\cmsgate\utils\htmlbuilder\page\AddOrUpdatePage;
 use esas\cmsgate\utils\htmlbuilder\presets\BootstrapPreset as bootstrap;
 use esas\cmsgate\utils\htmlbuilder\presets\ScriptsPreset;
-use esas\cmsgate\bridge\service\SessionServiceBridge;
 use esas\cmsgate\view\admin\AdminViewFields;
 use esas\cmsgate\view\admin\fields\ConfigFieldCheckbox;
 use esas\cmsgate\view\admin\fields\ConfigFieldDateTime;
@@ -31,11 +30,9 @@ use esas\cmsgate\view\admin\fields\ConfigFieldText;
 use esas\cmsgate\view\admin\fields\ConfigFieldTextarea;
 use esas\cmsgate\view\admin\fields\ListOption;
 use esas\cmsgate\view\admin\ManagedFields;
-use esas\cmsgate\view\admin\validators\ValidatorDateTime;
 use esas\cmsgate\view\admin\validators\ValidatorDateTimeLocal;
 use esas\cmsgate\view\admin\validators\ValidatorInteger;
 use esas\cmsgate\view\admin\validators\ValidatorNotEmpty;
-use esas\cmsgate\view\admin\validators\ValidatorNumeric;
 
 class AdminBuyNowBasketViewPage extends AdminBuyNowPage implements AddOrUpdatePage
 {

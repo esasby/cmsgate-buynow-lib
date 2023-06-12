@@ -7,13 +7,12 @@ namespace esas\cmsgate\buynow\hro\admin;
 use esas\cmsgate\bridge\dao\Order;
 use esas\cmsgate\bridge\dao\OrderStatusBridge;
 use esas\cmsgate\bridge\dao\ShopConfigRepository;
+use esas\cmsgate\buynow\dao\BasketBuyNow;
 use esas\cmsgate\buynow\dao\BasketBuyNowRepository;
 use esas\cmsgate\buynow\dao\OrderDataBuyNow;
 use esas\cmsgate\buynow\dao\ShopConfigBuyNow;
-
-use esas\cmsgate\buynow\dao\BasketBuyNow;
-use esas\cmsgate\buynow\view\admin\AdminViewFieldsBuyNow;
 use esas\cmsgate\buynow\service\RedirectServiceBuyNow;
+use esas\cmsgate\buynow\view\admin\AdminViewFieldsBuyNow;
 use esas\cmsgate\hro\cards\CardFooterHROFactory;
 use esas\cmsgate\hro\cards\CardHROFactory;
 use esas\cmsgate\hro\panels\CopyToClipboardPanelHROFactory;
